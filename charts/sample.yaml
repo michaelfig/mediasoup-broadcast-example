@@ -1,0 +1,15 @@
+image:
+  tag: latest
+  pullPolicy: Always
+service:
+  hostNetworkIP: 192.168.1.25
+ingress:
+  annotations:
+    certmanager.k8s.io/cluster-issuer: ca-issuer
+  enabled: true
+  hosts:
+  - ms.fig.org
+  tls:
+    - secretName: ms-cert-secret
+      hosts:
+      - ms.fig.org

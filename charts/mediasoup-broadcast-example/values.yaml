@@ -1,0 +1,59 @@
+# Default values for mediasoup-broadcast-example.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: mediasoup-broadcast-example
+  tag: stable
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80
+  # A different port that 80, which can cause conflicts when hostNetworkIP is set.
+  containerPort: 5398
+
+  # When Kubernetes supports port -1 to mean all ports for
+  # ClusterIP or LoadBalancer, you can use the following without hostNetworkIP:
+  # rtpPort: -1
+
+  # Set this to use hostNetwork: true on pods, and schedule only where
+  # <hostNetworkIPSelector>=<hostNetworkIP>
+  # hostNetworkIP: 192.168.1.25
+  hostNetworkIPSelector: flannel.alpha.coreos.com/public-ip
+  # If you use a different selector, you will need to annotate your node with
+  # kubectl label node <MY-PUBLIC-NODE> <hostNetworkIPSelector>=192.168.1.25
+  # and the server will only run on that node with hostNetwork: true
+
+ingress:
+  enabled: false
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  path: /
+  hosts:
+    - chart-example.local
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #  cpu: 100m
+  #  memory: 128Mi
+  # requests:
+  #  cpu: 100m
+  #  memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
