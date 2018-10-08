@@ -22,9 +22,8 @@ service:
   # Set this to use hostNetwork: true on pods, and schedule only where
   # <hostNetworkIPSelector>=<hostNetworkIP>
   # hostNetworkIP: 192.168.1.25
-  hostNetworkIPSelector: flannel.alpha.coreos.com/public-ip
-  # If you use a different selector, you will need to annotate your node with
-  # kubectl label node <MY-PUBLIC-NODE> <hostNetworkIPSelector>=192.168.1.25
+  # You will need to label your node with
+  # kubectl label node <MY-PUBLIC-NODE> hostNetworkIP=192.168.1.25
   # and the server will only run on that node with hostNetwork: true
 
 ingress:

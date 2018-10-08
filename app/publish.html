@@ -1,0 +1,45 @@
+<html>
+    <head>
+        <title>Mediasoup Broadcast Example</title>
+        <link rel="stylesheet" type="text/css" href="common.css" />
+    </head>
+    <body onload="publisherLoad()">
+        <script type="text/javascript" src="mediasoup-client.js"></script>
+        <script type="text/javascript" src="publisher.js"></script>
+        <div class="container">
+            <table class="params">
+                <tr>
+                    <th>Source:</th>
+                    <td><input type="radio" name="src" value="cam" id="camSrc" checked="checked"/>
+                        <label for="camSrc">Camera/Microphone</label></label></td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td><input type="radio" name="src" value="url" id="urlSrc" />
+                        <label for="urlSrc">URL:</label>&nbsp;<input type="text" value="videos/big_buck_bunny.mp4" name="url" id="url" /></label></td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td><button id="capture">Capture</button>
+                        <button id="stopCapture">Stop Capturing</button></button></td> 
+                </tr>
+                <tr>
+                    <th>Channel:</th>
+                    <td><input type="text" value="test"/></td>
+                </tr>
+                <tr>
+                    <th>Password:</th>
+                    <td><input type="password" value="ChangeMe"/></td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td><button id="publish">Publish</button>
+                        <button id="stopPublish">Stop Publishing</button></td>
+                </tr>
+            </table>
+            <video id="mainVideo">
+                You need HTML 5 Video to view.
+            </video>
+        </div>
+    </body>
+</html>

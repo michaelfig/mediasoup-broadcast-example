@@ -1,0 +1,27 @@
+* {
+    box-sizing: border-box;
+}
+
+input#url {
+    width: 40em;
+}
+
+html {
+    height: 100%;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.params {
+    flex: 0 0 auto;
+}
+
+video#mainVideo {
+    background: blue;
+    flex: 1 0 0;
+    width: 100%;
+}

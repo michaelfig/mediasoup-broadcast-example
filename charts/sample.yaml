@@ -1,15 +1,17 @@
 image:
+  repository: registry.dev3.ts.liveblockauctions.com/mediasoup-broadcast-example
   tag: latest
   pullPolicy: Always
 service:
+  # kubectl label no <MY-NODE> hostNetworkIP=192.168.1.25
   hostNetworkIP: 192.168.1.25
 ingress:
   annotations:
     certmanager.k8s.io/cluster-issuer: ca-issuer
   enabled: true
   hosts:
-  - ms.fig.org
+  - ms.dev3.ts.liveblockauctions.com
   tls:
-    - secretName: ms-cert-secret
+    - secretName: ms-dev3-secret
       hosts:
-      - ms.fig.org
+      - ms.dev3.ts.liveblockauctions.com

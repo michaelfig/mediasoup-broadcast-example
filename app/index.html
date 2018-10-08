@@ -1,7 +1,7 @@
 <html>
     <head>
         <title>Mediasoup Broadcast Example</title>
-        <link rel="stylesheet" type="text/css" href="subscriber.css" />
+        <link rel="stylesheet" type="text/css" href="common.css" />
     </head>
     <body onload="subscriberLoad()">
         <script type="text/javascript" src="mediasoup-client.js"></script>
@@ -9,8 +9,8 @@
         <div class="container">
             <table class="params">
                 <tr>
-                    <th>Channel name:</th>
-                    <td><input type="text"/></td>
+                    <th>Channel:</th>
+                    <td><input type="text" value="test"/></td>
                 </tr>
                 <tr>
                     <th>Password:</th>
@@ -18,14 +18,10 @@
                 </tr>
                 <tr>
                     <td></td>
-                    <td><button>Connect</button></td> 
+                    <td><button>Subscribe</button> <button>Stop Subscribing</button></td> 
                 </tr>
             </table>
-            <video id="mainViewer">
-                <source src="videos/big_buck_bunny.webm" type="video/webm" />
-                <source src="videos/big_buck_bunny.mp4" type="video/mp4" />
-                You need HTML5 Video to view.
-            </video>
+            <video id="mainVideo">You need HTML 5 Video to view.</video>
         </div>
     </body>
 </html>

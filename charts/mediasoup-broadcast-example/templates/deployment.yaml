@@ -27,7 +27,7 @@ spec:
             - name: HOST
               value: 0.0.0.0
             - name: PORT
-              value: {{ .Values.service.containerPort }}
+              value: {{ .Values.service.containerPort | quote }}
           {{- if .Values.service.hostNetworkIP }}
             - name: RTP_ANNOUNCE_IP
               value: {{ .Values.service.hostNetworkIP }}
@@ -58,7 +58,7 @@ spec:
       nodeSelector:
     {{- end }}
     {{- if .Values.service.hostNetworkIP }}
-        {{ .Values.service.hostNetworkIPSelector }}: {{ .Values.service.hostNetworkIP }}
+        hostNetworkIP: {{ .Values.service.hostNetworkIP }}
     {{- end }}
     {{- with .Values.nodeSelector }}
 {{ toYaml . | indent 8 }}

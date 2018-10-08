@@ -8,9 +8,19 @@ WORKDIR /usr/src/app
 COPY package*.json ./
 
 RUN npm install
+RUN rm -rf node_modules/clang-tools-prebuilt node_modules/mediasoup/worker/out/Release/*.a node_modules/mediasoup/worker/out/obj.target
+
+FROM node:carbon
+
+WORKDIR /usr/src/app
+
+COPY --from=0 /usr/src/app/node_modules ./node_modules
+
+COPY app/videos ./app/videos
 
 # Bundle app source.
 COPY . .
+RUN curl https://raw.githubusercontent.com/versatica/mediasoup-client/master/dist/mediasoup-client.js > app/mediasoup-client.js
 
 EXPOSE 8000
 ENV PORT 8000
