@@ -20,8 +20,12 @@ html {
     flex: 0 0 auto;
 }
 
-video#mainVideo {
+.mainVideo {
     background: blue;
     flex: 1 0 0;
     width: 100%;
+}
+
+.mainVideo.cam {
+    display: none;
 }

@@ -1,14 +1,24 @@
 var video;
 
-function maybeShowBlack() {
+function maybePlay() {
     video.style.background = 'black';
+    if (video.srcObject || video.src) {
+        video.play().catch(function playError(e) {
+            console.log('Cannot play video', e);
+        });
+    }
 }
 
 function stopVideo() {
-    video.pause();
+    if (!video.paused) {
+        video.pause();
+    }
     video.style.background = 'blue';
     try {
-        if (video.srcObject && video.srcObject.getTracks) {
+        if (video.srcObject && video.srcObject.stop) {
+            video.srcObject.stop();
+        }
+        else if (video.srcObject && video.srcObject.getTracks) {
             var tracks = video.srcObject.getTracks();
             for (var i = 0; i < tracks.length; i ++) {
                 tracks[i].stop();
@@ -16,8 +26,11 @@ function stopVideo() {
         }
         video.srcObject = null;
     }
-    catch {}
+    catch (e) {
+        console.log('Error stopping srcObject', e);
+    }
     video.removeAttribute('src');
+    video.currentTime = 0;
     video.load();
 }
 
@@ -37,6 +50,12 @@ function captureClick() {
 
     if (src.id.match(/^cam/i)) {
         stopVideo();
+        // We need to swap video tags for Safari 12 on MacOS, which
+        // refuses to change from a getUserMedia srcObject back to
+        // a regular src stream.
+        video.style.display = 'none';
+        video = document.querySelector('.mainVideo.cam');
+        video.style.display = 'block';
         navigator.mediaDevices.getUserMedia({
             audio: true,
             video: true,
@@ -50,8 +69,7 @@ function captureClick() {
                     var url = (window.URL || window.webkitURL);
                     video.src = url ? url.createObjectURL(stream) : stream;
                 }
-                
-                video.play();
+                maybePlay();
             })
         .catch(function errorCallback(error) {
             alert('Error getting media (error code ' + error.code + ')');
@@ -59,11 +77,14 @@ function captureClick() {
     }
     else if (src.id.match(/^url/i)) {
         stopVideo();
+        video.style.display = 'none';
+        video = document.querySelector('.mainVideo.url');
+        video.style.display = 'block';
         var url = document.querySelector('input#url').value;
         video.src = url;
-        video.play();
+        video.load();
         if (video.readyState >= 3) {
-            maybeShowBlack();
+            maybePlay();
         }
     }
     else {
@@ -93,9 +114,9 @@ function publisherLoad() {
     stopCapture.addEventListener('click', stopCaptureClick);
     publish.addEventListener('click', publishClick);
     stopPublish.addEventListener('click', stopPublishClick);
-    video = document.querySelector('#mainVideo');
-    video.oncanplay = maybeShowBlack;
+    video = document.querySelector('.mainVideo.url');
+    video.oncanplay = maybePlay;
     if (video.readyState >= 3) {
-        maybeShowBlack();
+        maybePlay();
     }
 }

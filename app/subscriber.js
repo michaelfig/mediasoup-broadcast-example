@@ -5,7 +5,7 @@ function maybeShowBlack() {
 }
 
 function subscriberLoad() {
-    video = document.querySelector('#mainVideo');
+    video = document.querySelector('.mainVideo.rtc');
     video.oncanplay = maybeShowBlack;
     if (video.readyState >= 3) {
         maybeShowBlack();
