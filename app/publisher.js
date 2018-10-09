@@ -9,6 +9,17 @@ function maybePlay() {
     }
 }
 
+function switchVideo(sel) {
+    stopVideo();
+
+    // We need to swap video tags for Safari 12 on MacOS, which
+    // refuses to change from a getUserMedia srcObject back to
+    // a regular src stream.
+    video.style.display = 'none';
+    video = document.querySelector(sel);
+    video.style.display = 'block';
+}
+
 function stopVideo() {
     if (!video.paused) {
         video.pause();
@@ -49,13 +60,7 @@ function captureClick() {
     }
 
     if (src.id.match(/^cam/i)) {
-        stopVideo();
-        // We need to swap video tags for Safari 12 on MacOS, which
-        // refuses to change from a getUserMedia srcObject back to
-        // a regular src stream.
-        video.style.display = 'none';
-        video = document.querySelector('.mainVideo.cam');
-        video.style.display = 'block';
+        switchVideo('.mainVideo.cam');
         navigator.mediaDevices.getUserMedia({
             audio: true,
             video: true,
@@ -76,10 +81,7 @@ function captureClick() {
         });
     }
     else if (src.id.match(/^url/i)) {
-        stopVideo();
-        video.style.display = 'none';
-        video = document.querySelector('.mainVideo.url');
-        video.style.display = 'block';
+        switchVideo('.mainVideo.url');
         var url = document.querySelector('input#url').value;
         video.src = url;
         video.load();
