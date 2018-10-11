@@ -1,4 +1,6 @@
+'use strict';
 var video;
+var ws;
 
 function maybePlay() {
     video.style.background = 'black';
@@ -100,11 +102,26 @@ function stopCaptureClick() {
 }
 
 function publishClick() {
-    alert('would publish');
+    stopPublishClick();
+
+    var channel = document.querySelector('#pubChannel').value;
+    var password = document.querySelector('#pubPassword').value;
+
+    pubsubClient(channel, password, true)
+        .then(function havePubsub(ps) {
+            ws = ps.ws;
+            alert('would start publishing');
+        })
+        .catch(function onError(err) {
+            alert('Cannot publish to channel: ' + err);
+        });
 }
 
 function stopPublishClick() {
-    alert('would stop publishing');
+    if (ws) {
+        ws.close();
+        ws = undefined;
+    }
 }
 
 function publisherLoad() {

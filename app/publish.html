@@ -4,8 +4,6 @@
         <link rel="stylesheet" type="text/css" href="common.css" />
     </head>
     <body onload="publisherLoad()">
-        <script type="text/javascript" src="mediasoup-client.js"></script>
-        <script type="text/javascript" src="publisher.js"></script>
         <div class="container">
             <table class="params">
                 <tr>
@@ -25,11 +23,11 @@
                 </tr>
                 <tr>
                     <th>Channel:</th>
-                    <td><input type="text" value="test"/></td>
+                    <td><input type="text" value="test" id="pubChannel"/></td>
                 </tr>
                 <tr>
                     <th>Password:</th>
-                    <td><input type="password" value="ChangeMe"/></td>
+                    <td><input type="password" value="ChangeMe" id="pubPassword"/></td>
                 </tr>
                 <tr>
                     <td></td>
@@ -44,5 +42,8 @@
                 You need HTML 5 Video to view.
             </video>
         </div>
+        <script type="text/javascript" src="mediasoup-client.js"></script> 
+        <script type="text/javascript" src="wsclient.js"></script>
+        <script type="text/javascript" src="publisher.js"></script>
     </body>
 </html>

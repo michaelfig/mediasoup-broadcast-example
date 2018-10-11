@@ -3,7 +3,8 @@ image:
   tag: latest
   pullPolicy: Always
 service:
-  # kubectl label no <MY-NODE> hostNetworkIP=192.168.1.25
+  # Needs:
+  # kubectl label node <MY-NODE> hostNetworkIP=192.168.1.25
   hostNetworkIP: 192.168.1.25
 ingress:
   annotations:

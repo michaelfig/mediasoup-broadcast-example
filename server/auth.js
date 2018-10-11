@@ -1,34 +1,29 @@
+'use strict';
 const querystring = require('querystring');
 const url = require('url');
 
 const SEND_PASSWORD = process.env.SEND_PASSWORD || 'ChangeMe';
 const RECV_PASSWORD = process.env.RECV_PASSWORD || 'NotSecret';
 
-function authSender(req, callback, errback) {
-    const u = url.parse(req.url);
-    const q = querystring.parse(u.query);
-    console.log(`Authenticating sender to ${q.channel}`);
-    if (Buffer.from(q.access_token, 'base64').toString('ascii') === SEND_PASSWORD) {
-        console.log('Success!');
-        return callback(q.channel);
+function authorize(addr, channel, request) {
+    if (request.kind === 'subscribe') {
+        console.log(addr, `Authorizing subscriber to ${channel}`);
+        if (request.password === RECV_PASSWORD) {
+            return Promise.resolve('subscribe');
+        }
     }
-    console.log('Error!');
-    return errback(Error('Cannot authenticate sender'));
-}
-
-function authReceiver(req, callback, errback) {
-    const u = url.parse(req.url);
-    const q = querystring.parse(u.query);
-    console.log(`Authenticating receiver to ${q.channel}`);
-    if (Buffer.from(q.access_token, 'base64').toString('ascii') === RECV_PASSWORD) {
-        console.log('Success!');
-        return callback(q.channel);
+    else if (request.kind === 'publish') {
+        console.log(addr, `Authorizing publisher to ${channel}`);
+        if (request.password === SEND_PASSWORD) {
+            return Promise.resolve('publish');
+        }
     }
-    console.log('Error!');
-    return errback(Error('Cannot authenticate receiver'));
+    else {
+        return Promise.reject(Error(addr + ' Unknown kind ' + request.kind));
+    }
+    return Promise.reject(Error(addr + ' Invalid authorization for ' + request.kind));
 }
 
 module.exports = {
-    authSender,
-    authReceiver,
+    authorize,
 };

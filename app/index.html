@@ -4,24 +4,26 @@
         <link rel="stylesheet" type="text/css" href="common.css" />
     </head>
     <body onload="subscriberLoad()">
-        <script type="text/javascript" src="mediasoup-client.js"></script>
-        <script type="text/javascript" src="subscriber.js"></script>
         <div class="container">
             <table class="params">
                 <tr>
                     <th>Channel:</th>
-                    <td><input type="text" value="test"/></td>
+                    <td><input type="text" value="test" id="subChannel"/></td>
                 </tr>
                 <tr>
                     <th>Password:</th>
-                    <td><input type="password" value="NotSecret"/></td>
+                    <td><input type="password" value="NotSecret" id="subPassword"/></td>
                 </tr>
                 <tr>
                     <td></td>
-                    <td><button>Subscribe</button> <button>Stop Subscribing</button></td> 
+                    <td><button id="subscribe">Subscribe</button>
+                        <button id="stopSubscribe">Stop Subscribing</button></td> 
                 </tr>
             </table>
             <video class="mainVideo rtc">You need HTML 5 Video to view.</video>
         </div>
+        <script type="text/javascript" src="mediasoup-client.js"></script>
+        <script type="text/javascript" src="wsclient.js"></script>
+        <script type="text/javascript" src="subscriber.js"></script>
     </body>
 </html>

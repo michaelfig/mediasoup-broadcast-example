@@ -1,3 +1,4 @@
+'use strict';
 const fs = require('fs');
 const url = require('url');
 
@@ -34,34 +35,40 @@ app.use(express.static(`${__dirname}/../app`));
 const wss = new WebSocket.Server({noServer: true});
 
 server.on('upgrade', function upgrade(req, socket, head) {
+    // Upgrade all /pubsub connections to WebSocket.
     const pathname = url.parse(req.url).pathname;
-    function dontUpgrade() {
+    const addr = socket.remoteAddress + ' ' + socket.remotePort;
+    if (pathname !== '/pubsub') {
+        console.log(addr, 'not connecting to /pubsub');
         socket.destroy();
+        return;
     }
 
-    try {
-        if (pathname === '/publish') {
-            function upgradePublisher(channel) {
-                wss.handleUpgrade(req, socket, head, function done(ws) {
-                    wsServer.publish(channel, ws);
-                });
+    wss.handleUpgrade(req, socket, head, function done(ws) {
+        ws.onmessage = function onMessage(event) {
+            const action = JSON.parse(event.data);
+            if (action.type === 'MS_SEND') {
+                // kind is either 'publish' or 'subscribe'.
+                auth.authorize(addr, action.meta.channel, action.payload)
+                    .then((kind) => {
+                        ws.send(JSON.stringify({type: 'MS_RESPONSE', payload: kind, meta: action.meta}));
+                        wsServer[kind](addr, action.meta.channel, ws);
+                    })
+                    .catch((e) => {
+                        console.log(addr, 'cannot authorize', e);
+                        socket.destroy();
+                    });
             }
-            auth.authSender(req, upgradePublisher, dontUpgrade);
-        }
-        else if (pathname === '/subscribe') {
-            function upgradeSubscriber(channel) {
-                wss.handleUpgrade(req, socket, head, function done(ws) {
-                    wsServer.subscribe(channel, ws);
-                });
+            else {
+                console.log(addr, 'received unauthorized message', event.data);
+                socket.destroy();
             }
-            auth.authReceiver(req, upgradeSubscriber, dontUpgrade);
-        }
-        else {
-            dontUpgrade();
-        }
-    }
-    catch (e) {
-        console.log('Got error authenticating', e);
-        dontUpgrade();
-    }
+        };
+        ws.onerror = function onError(event) {
+            console.log(addr, 'error', event.message, event.error);
+        };
+        ws.onclose = function onClose(event) {
+            console.log(addr, 'closed');
+        };
+    });
 });
