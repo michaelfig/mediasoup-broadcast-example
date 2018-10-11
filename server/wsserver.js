@@ -38,12 +38,14 @@ const MEDIA_CODECS = [
         "level-asymmetry-allowed" : 1
       }
     },
+    /*
     {
-        // Put VP8 last, since it's nice but iOS doesn't support it.
+        // VP8 is nice but Safari doesn't support it.
         kind      : "video",
         name      : "VP8",
         clockRate : 90000
     },
+    */
   ];
 
 function publish(addr, channel, ws) {
@@ -121,7 +123,7 @@ function handlePubsub(addr, channel, ws, isPublisher) {
                             var peerName = action.payload.peerName;
                             peer = room.getPeerByName(peerName);
                             peer.on('notify', function onNotify(notification) {
-                                if (notification.method === 'newPeer') {
+                                if (notification.method === 'newPeer' || notification.method === 'peerClosed') {
                                     if (!isPublisher && notification.name !== PUBLISHER_PEER) {
                                         // Skip the notification to hide all but the publisher.
                                         return;

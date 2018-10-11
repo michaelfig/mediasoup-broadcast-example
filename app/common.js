@@ -1,6 +1,35 @@
 'use strict';
 var ms = window.mediasoupClient;
 
+function stopVideo(video) {
+    if (!video) {
+        return;
+    }
+    if (!video.paused) {
+        video.pause();
+    }
+    video.style.background = 'blue';
+    try {
+        if (video.srcObject && video.srcObject.stop) {
+            video.srcObject.stop();
+        }
+        else if (video.srcObject && video.srcObject.getTracks) {
+            var tracks = video.srcObject.getTracks();
+            for (var i = 0; i < tracks.length; i ++) {
+                tracks[i].stop();
+            }
+        }
+        video.srcObject = null;
+    }
+    catch (e) {
+        console.log('Error stopping srcObject', e);
+    }
+    video.removeAttribute('src');
+    video.currentTime = 0;
+    video.load();
+}
+
+
 function pubsubClient(channel, password, isPublisher) {
     return new Promise(function executor(resolve, reject) {
         var kind = isPublisher ? 'publish' : 'subscribe';

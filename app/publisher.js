@@ -1,50 +1,72 @@
 'use strict';
-var video;
 var ws;
+var room;
+var video;
+var transport;
+var producers = {};
+
+function maybeStream() {
+    // Actually begin the stream if we can.
+    if (!room || !video) {
+        return;
+    }
+    var stream = video.srcObject;
+    if (!stream && video.captureStream) {
+        stream = video.captureStream();
+    }
+    if (!stream && video.mozCaptureStream) {
+        stream = video.mozCaptureStream();
+    }
+    if (!stream) {
+        return;
+    }
+
+    function connectProducer(type, track) {
+        if (producers[type]) {
+            if (track) {
+                producers[type].replaceTrack(track);
+            }
+            else {
+                producers[type].close();
+                delete producers[type];
+            }
+        }
+        else if (track) {
+            producers[type] = room.createProducer(track);
+            producers[type].send(transport);
+        }
+    }
+
+    connectProducer('audio', stream.getAudioTracks()[0]);
+    connectProducer('video', stream.getVideoTracks()[0]);
+}
 
 function maybePlay() {
     video.style.background = 'black';
     if (video.srcObject || video.src) {
-        video.play().catch(function playError(e) {
-            console.log('Cannot play video', e);
-        });
+        video.play()
+            .then(maybeStream)
+            .catch(function playError(e) {
+                console.log('Cannot play video', e);
+            });
     }
 }
 
 function switchVideo(sel) {
-    stopVideo();
+    stopVideo(video);
 
     // We need to swap video tags for Safari 12 on MacOS, which
     // refuses to change from a getUserMedia srcObject back to
     // a regular src stream.
     video.style.display = 'none';
     video = document.querySelector(sel);
+    
+    // Mute everywhere except Firefox, which mutes when we start streaming
+    // and won't stream audio if we mute it manually.
+    if (!video.mozCaptureStream) {
+        video.volume = 0;
+    }
     video.style.display = 'block';
-}
-
-function stopVideo() {
-    if (!video.paused) {
-        video.pause();
-    }
-    video.style.background = 'blue';
-    try {
-        if (video.srcObject && video.srcObject.stop) {
-            video.srcObject.stop();
-        }
-        else if (video.srcObject && video.srcObject.getTracks) {
-            var tracks = video.srcObject.getTracks();
-            for (var i = 0; i < tracks.length; i ++) {
-                tracks[i].stop();
-            }
-        }
-        video.srcObject = null;
-    }
-    catch (e) {
-        console.log('Error stopping srcObject', e);
-    }
-    video.removeAttribute('src');
-    video.currentTime = 0;
-    video.load();
 }
 
 function captureClick() {
@@ -98,7 +120,7 @@ function captureClick() {
 }
 
 function stopCaptureClick() {
-    stopVideo();
+    stopVideo(video);
 }
 
 function publishClick() {
@@ -110,7 +132,12 @@ function publishClick() {
     pubsubClient(channel, password, true)
         .then(function havePubsub(ps) {
             ws = ps.ws;
-            alert('would start publishing');
+            room = ps.room;
+            producers = {};
+
+            // Now actually stream the selected video to the output.
+            transport = room.createTransport('send');
+            maybeStream();
         })
         .catch(function onError(err) {
             alert('Cannot publish to channel: ' + err);
