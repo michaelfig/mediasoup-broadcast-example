@@ -8,6 +8,11 @@ WORKDIR /usr/src/app
 COPY package*.json ./
 
 RUN npm install
+
+# FIXME: Temporary hack to get Dtls to work with Edge.
+COPY DtlsTransport.cpp node_modules/mediasoup/worker/src/RTC/
+RUN cd node_modules/mediasoup && make Release
+
 RUN rm -rf node_modules/clang-tools-prebuilt node_modules/mediasoup/worker/out/Release/*.a node_modules/mediasoup/worker/out/obj.target
 
 FROM node:carbon
@@ -20,7 +25,6 @@ COPY app/videos ./app/videos
 
 # Bundle app source.
 COPY . .
-RUN curl https://raw.githubusercontent.com/versatica/mediasoup-client/master/dist/mediasoup-client.js > app/mediasoup-client.js
 
 EXPOSE 8000
 ENV PORT 8000

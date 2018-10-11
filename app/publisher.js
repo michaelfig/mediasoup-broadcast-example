@@ -23,7 +23,7 @@ function maybeStream() {
 
     function connectProducer(type, track) {
         if (producers[type]) {
-            if (track) {
+            if (track && track.readyState === 'live') {
                 producers[type].replaceTrack(track);
             }
             else {
@@ -31,7 +31,7 @@ function maybeStream() {
                 delete producers[type];
             }
         }
-        else if (track) {
+        else if (track && track.readyState === 'live') {
             producers[type] = room.createProducer(track);
             producers[type].send(transport);
         }

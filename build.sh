@@ -1,2 +1,3 @@
-docker build -t registry.dev3.ts.liveblockauctions.com/mediasoup-broadcast-example .
-docker push registry.dev3.ts.liveblockauctions.com/mediasoup-broadcast-example
+REGISTRY=${REGISTRY-registry.dev3.ts.liveblockauctions.com}
+docker build -t $REGISTRY/mediasoup-broadcast-example .
+docker push $REGISTRY/mediasoup-broadcast-example

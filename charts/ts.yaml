@@ -4,10 +4,13 @@ image:
   pullPolicy: Always
 service:
   # Needs:
-  # kubectl label node <MY-NODE> hostNetworkIP=192.168.41.7
-  hostNetworkIP: 192.168.41.7
+  # kubectl label node <MY-NODE> hostNetworkIP=192.168.1.25
+  hostNetworkIP: 192.168.1.25
 ingress:
   annotations:
+    ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "1800"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "1800"
     certmanager.k8s.io/cluster-issuer: ca-issuer
   enabled: true
   hosts:

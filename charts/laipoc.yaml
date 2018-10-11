@@ -1,0 +1,22 @@
+image:
+  repository: laipoc.azurecr.io/mediasoup-broadcast-example
+  tag: latest
+  pullPolicy: Always
+service:
+  # Needs:
+  # kubectl label node <MY-NODE> hostNetworkIP=40.85.240.169
+  hostNetworkIP: 40.85.240.169
+ingress:
+  annotations:
+    kubernetes.io/ingress.class: addon-http-application-routing
+    ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "1800"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "1800"
+    certmanager.k8s.io/cluster-issuer: letsencrypt-prod
+  enabled: true
+  hosts:
+  - ms.poc.ts.liveblockauctions.com
+  tls:
+    - secretName: ms-poc-secret
+      hosts:
+      - ms.poc.ts.liveblockauctions.com

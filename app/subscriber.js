@@ -43,8 +43,13 @@ function startStream(peer) {
             console.log('consumer', consumer.id, 'not supported');
             return;
         }
-        toAdd.push(consumer);
-        dequeueConsumers();
+        consumer.receive(transport)
+            .then(function receiveTrack(track) {
+                stream.addTrack(track);
+            })
+            .catch(function onError(e) {
+                console.log('Cannot add track', e);
+            });
     }
     
     // Add consumers that are added later...
@@ -68,10 +73,9 @@ function subscribeClick() {
         .then(function havePubsub(ps) {
             ws = ps.ws;
             room = ps.room;
+            transport = room.createTransport('recv');
             // The server will only ever send us a single publisher.
             // Stream it if it is new...
-            toAdd = [];
-            dequeueConsumers();
             room.on('newpeer', function newPeer(peer) {
                 console.log('New peer detected:', peer.name);
                 stopVideo(video);
