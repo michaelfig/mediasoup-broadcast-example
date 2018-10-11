@@ -6,8 +6,13 @@ input#url {
     width: 40em;
 }
 
-html {
+html, body {
     height: 100%;
+    margin: 0px;
+}
+
+html {
+    padding: 5px;
 }
 
 .container {

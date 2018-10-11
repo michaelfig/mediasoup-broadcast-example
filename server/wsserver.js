@@ -2,15 +2,18 @@
 const mediasoup = require('mediasoup');
 
 const msOptions = {
-    rtcIPv4: true,
-    rtcIPv6: false,
+    rtcIPv4: process.env.RTC_IPV4 || true,
+    rtcIPv6: process.env.RTC_IPV6 || false,
 };
-if (process.env.RTC_ANNOUNCE_IP) {
+if (process.env.RTC_ANNOUNCE_IPV4) {
     // This is the external IP address that routes to the current
     // instance.  For cloud providers or Kubernetes, this
     // will be a different address than the connected network
     // interface will use.
-    msOptions.rtcAnnouncedIPv4 = process.env.RTC_ANNOUNCE_IP;
+    msOptions.rtcAnnouncedIPv4 = process.env.RTC_ANNOUNCE_IPV4;
+}
+if (process.env.RTC_ANNOUNCE_IPV6) {
+    msOptions.rtcAnnouncedIPv6 = process.env.RTC_ANNOUNCE_IPV6;
 }
 const ms = mediasoup.Server(msOptions);
 
@@ -28,8 +31,13 @@ const MEDIA_CODECS = [
       }
     },
     {
+        kind      : "video",
+        name      : "vp8",
+        clockRate : 90000
+    },
+    {
       kind       : "video",
-      name       : "H264",
+      name       : "h264",
       clockRate  : 90000,
       parameters :
       {
@@ -38,14 +46,6 @@ const MEDIA_CODECS = [
         "level-asymmetry-allowed" : 1
       }
     },
-    /*
-    {
-        // VP8 is nice but Safari doesn't support it.
-        kind      : "video",
-        name      : "VP8",
-        clockRate : 90000
-    },
-    */
   ];
 
 function publish(addr, channel, ws) {
@@ -123,7 +123,7 @@ function handlePubsub(addr, channel, ws, isPublisher) {
                             var peerName = action.payload.peerName;
                             peer = room.getPeerByName(peerName);
                             peer.on('notify', function onNotify(notification) {
-                                if (notification.method === 'newPeer' || notification.method === 'peerClosed') {
+                                if (notification.method === 'newPeer' || notification.method === 'peerClosed' ) {
                                     if (!isPublisher && notification.name !== PUBLISHER_PEER) {
                                         // Skip the notification to hide all but the publisher.
                                         return;

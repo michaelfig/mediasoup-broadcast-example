@@ -1,6 +1,18 @@
 'use strict';
 var ms = window.mediasoupClient;
 
+function setVideoSource(video, stream) {
+    window.stream = stream;
+    try {
+        video.srcObject = stream;
+    }
+    catch (e) {
+        var url = (window.URL || window.webkitURL);
+        video.src = url ? url.createObjectURL(stream) : stream;
+    }
+}
+
+
 function stopVideo(video) {
     if (!video) {
         return;
@@ -71,6 +83,7 @@ function pubsubClient(channel, password, isPublisher) {
             }
         };
         ws.onmessage = function onMessage(event) {
+            console.log('received', event.data);
             try {
                 var action = JSON.parse(event.data);
                 switch (action.type) {
@@ -91,6 +104,7 @@ function pubsubClient(channel, password, isPublisher) {
                         if (errb) {
                             errb(action.payload);
                         }
+                        break;
                     }
 
                     case 'MS_NOTIFY': {

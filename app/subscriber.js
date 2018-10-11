@@ -15,8 +15,18 @@ function maybePlay() {
     }
 }
 
-function startStream(peer) {
-    function addConsumer(consumer) {
+var toAdd = [];
+function dequeueConsumers() {
+    if (!transport || transport.connectionState === 'closed') {
+        if (!room) {
+            transport = undefined;
+            return;
+        }
+        transport = room.createTransport('recv');
+        transport.on('connectionstatechange', dequeueConsumers);
+    }
+    while (toAdd.length) {
+        var consumer = toAdd.shift();
         consumer.receive(transport)
             .then(function receiveTrack(track) {
                 stream.addTrack(track);
@@ -24,6 +34,17 @@ function startStream(peer) {
             .catch(function onError(e) {
                 console.log('Cannot add track', e);
             });
+    }
+}
+
+function startStream(peer) {
+    function addConsumer(consumer) {
+        if (!consumer.supported) {
+            console.log('consumer', consumer.id, 'not supported');
+            return;
+        }
+        toAdd.push(consumer);
+        dequeueConsumers();
     }
     
     // Add consumers that are added later...
@@ -37,8 +58,7 @@ function startStream(peer) {
 function subscribeClick() {
     stopSubscribeClick();
 
-    stream = new MediaStream();
-    video.srcObject = stream;
+    setVideoSource(video, new MediaStream());
     maybePlay();
 
     var channel = document.querySelector('#subChannel').value;
@@ -50,12 +70,12 @@ function subscribeClick() {
             room = ps.room;
             // The server will only ever send us a single publisher.
             // Stream it if it is new...
-            transport = room.createTransport('recv');
+            toAdd = [];
+            dequeueConsumers();
             room.on('newpeer', function newPeer(peer) {
                 console.log('New peer detected:', peer.name);
                 stopVideo(video);
-                stream = new MediaStream();
-                video.srcObject = stream;
+                setVideoSource(video, new MediaStream());
                 maybePlay();
                 startStream(peer);
             });

@@ -4,8 +4,8 @@ image:
   pullPolicy: Always
 service:
   # Needs:
-  # kubectl label node <MY-NODE> hostNetworkIP=192.168.1.25
-  hostNetworkIP: 192.168.1.25
+  # kubectl label node <MY-NODE> hostNetworkIP=192.168.41.7
+  hostNetworkIP: 192.168.41.7
 ingress:
   annotations:
     certmanager.k8s.io/cluster-issuer: ca-issuer

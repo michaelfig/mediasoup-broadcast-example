@@ -1,6 +1,7 @@
 'use strict';
 var ws;
 var room;
+var stream;
 var video;
 var transport;
 var producers = {};
@@ -10,7 +11,6 @@ function maybeStream() {
     if (!room || !video) {
         return;
     }
-    var stream = video.srcObject;
     if (!stream && video.captureStream) {
         stream = video.captureStream();
     }
@@ -91,13 +91,7 @@ function captureClick() {
         })
         .then(function successCallback(stream) {
                 // Send the output of the media to the video.
-                try {
-                    video.srcObject = stream;
-                }
-                catch (e) {
-                    var url = (window.URL || window.webkitURL);
-                    video.src = url ? url.createObjectURL(stream) : stream;
-                }
+                setVideoSource(video, stream);
                 maybePlay();
             })
         .catch(function errorCallback(error) {

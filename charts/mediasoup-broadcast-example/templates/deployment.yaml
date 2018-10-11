@@ -29,7 +29,8 @@ spec:
             - name: PORT
               value: {{ .Values.service.containerPort | quote }}
           {{- if .Values.service.hostNetworkIP }}
-            - name: RTP_ANNOUNCE_IP
+            # - name: RTC_IPV4
+            - name: RTC_ANNOUNCE_IPV4
               value: {{ .Values.service.hostNetworkIP }}
           {{- end }}
           ports:
