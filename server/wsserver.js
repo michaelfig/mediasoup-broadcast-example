@@ -30,11 +30,14 @@ const MEDIA_CODECS = [
         useinbandfec : 1
       }
     },
+    /*
+    // FIXME: Safari 11 doesn't suppport vp8, so we need just h264 for portability.
     {
         kind      : "video",
         name      : "vp8",
         clockRate : 90000
     },
+    */
     {
       kind       : "video",
       name       : "h264",

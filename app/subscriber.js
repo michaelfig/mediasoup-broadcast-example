@@ -99,6 +99,9 @@ function stopSubscribeClick() {
         ws.close();
         ws = undefined;
     }
+    stream = undefined;
+    transport = undefined;
+    room = undefined;
 }
 
 function subscriberLoad() {

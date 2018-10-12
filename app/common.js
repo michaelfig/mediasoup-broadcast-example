@@ -1,15 +1,29 @@
 'use strict';
 var ms = window.mediasoupClient;
 
+var setSourceTimeout;
 function setVideoSource(video, stream) {
     window.stream = stream;
-    try {
-        video.srcObject = stream;
+    if (!setSourceTimeout) {
+        setSrc();
     }
-    catch (e) {
-        var url = (window.URL || window.webkitURL);
-        video.src = url ? url.createObjectURL(stream) : stream;
-    }
+    function setSrc() {
+        if (!window.stream) {
+            setSourceTimeout = undefined;
+            return;
+        }
+        if (!window.stream.active) {
+            setSourceTimeout = setTimeout(setSrc, 1000);
+            return;
+        }
+        try {
+            video.srcObject = stream;
+        }
+        catch (e) {
+            var url = (window.URL || window.webkitURL);
+            video.src = url ? url.createObjectURL(stream) : stream;
+        }
+    };
 }
 
 
