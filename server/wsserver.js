@@ -79,7 +79,7 @@ function handlePubsub(addr, channel, ws, isPublisher) {
         oldClose.call(this, event);
     };
     ws.onmessage = function onMessage(event) {
-        console.log(addr, 'got message', event.data);
+        // console.log(addr, 'got message', event.data);
         const action = JSON.parse(event.data);
         switch (action.type) {
             case 'MS_SEND': {
@@ -104,19 +104,21 @@ function handlePubsub(addr, channel, ws, isPublisher) {
                 if (!target) {
                     console.log(addr, 'unknown request target', action.payload.target);
                     sendAction({type: 'MS_ERROR', payload: 'unknown request target', meta: action.meta});
-                    return;
+                    break;
                 }
                 if (action.payload.method === 'join') {
                     if (isPublisher) {
-                        // Kick out the old publisher.
+                        // Publisher has a reserved name.
                         action.payload.peerName = PUBLISHER_PEER;
-                        var oldPeer = room.getPeerByName(action.payload.peerName);
-                        if (oldPeer) {
-                            oldPeer.close();
-                        }
                     }
                     else if (action.payload.peerName === PUBLISHER_PEER) {
+                        // They tried to be the publisher, but weren't authed.
                         action.payload.peerName = 'pseudo' + PUBLISHER_PEER;
+                    }
+                    // Kick out the old peer.
+                    var oldPeer = room.getPeerByName(action.payload.peerName);
+                    if (oldPeer) {
+                        oldPeer.close();
                     }
                 }
                 target.receiveRequest(action.payload)
@@ -132,19 +134,19 @@ function handlePubsub(addr, channel, ws, isPublisher) {
                                         return;
                                     }
                                 }
-                                console.log(addr, 'sending notification', notification);
+                                // console.log(addr, 'sending notification', notification);
                                 sendAction({type: 'MS_NOTIFY', payload: notification});
                             });
                             console.log(addr, 'new peer joined the room', peerName);
                             if (!isPublisher) {
-                                // Filter out all but the publisher.
+                                // Filter out all peers but the publisher.
                                 response = Object.assign({}, response,
                                     {peers: response.peers.filter(function (peer) {
                                         return (peer.name === PUBLISHER_PEER);
                                     })});
                             }
                         }
-                        console.log(addr, 'sending response', response);
+                        // console.log(addr, 'sending response', response);
                         sendAction({type: 'MS_RESPONSE', payload: response, meta: action.meta});
                     })
                     .catch(function onError(err) {

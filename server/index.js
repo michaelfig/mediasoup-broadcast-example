@@ -33,6 +33,25 @@ else {
 app.use(express.static(`${__dirname}/../app`));
 
 const wss = new WebSocket.Server({noServer: true});
+function heartbeat() {
+    // Mark this socket as alive.
+    this.isAlive = true;
+}
+function noop() {
+    // Do nothing.
+}
+const pinger = setInterval(function ping() {
+    // Ping all the clients to see if they're dead.
+    wss.clients.forEach(function each(ws) {
+        if (ws.isAlive === false) {
+            // Dead for a whole cycle, so close.
+            return ws.terminate();
+        }
+        // Mark as dead until we know otherwise.
+        ws.isAlive = false;
+        ws.ping(noop);
+    })
+}, 30000);
 
 server.on('upgrade', function upgrade(req, socket, head) {
     // Upgrade all /pubsub connections to WebSocket.
@@ -45,6 +64,8 @@ server.on('upgrade', function upgrade(req, socket, head) {
     }
 
     wss.handleUpgrade(req, socket, head, function done(ws) {
+        ws.isAlive = true;
+        ws.on('pong', heartbeat);
         ws.onmessage = function onMessage(event) {
             const action = JSON.parse(event.data);
             if (action.type === 'MS_SEND') {
