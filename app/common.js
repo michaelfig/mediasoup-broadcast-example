@@ -1,58 +1,111 @@
 'use strict';
 var ms = window.mediasoupClient;
+var video;
+var stream;
 
-var setSourceTimeout;
-function setVideoSource(video, stream) {
-    window.stream = stream;
-    if (!setSourceTimeout) {
-        setSrc();
-    }
-    function setSrc() {
-        if (!window.stream) {
-            setSourceTimeout = undefined;
-            return;
-        }
-        if (!window.stream.active) {
-            setSourceTimeout = setTimeout(setSrc, 1000);
-            return;
-        }
+var onActiveTimeout;
+function setVideoSource(streamOrUrl) {
+    if (stream) {
         try {
-            video.srcObject = stream;
+            if (stream.stop) {
+                stream.stop();
+            }
+            else if (stream.getTracks) {
+                var tracks = stream.getTracks();
+                for (var i = 0; i < tracks.length; i ++) {
+                    tracks[i].stop();
+                }
+            }
         }
         catch (e) {
-            var url = (window.URL || window.webkitURL);
-            video.src = url ? url.createObjectURL(stream) : stream;
+            console.log('Error stopping stream', e);
         }
-    };
+        stream = undefined;
+    }
+
+    if (onActiveTimeout) {
+        clearTimeout(onActiveTimeout);
+        onActiveTimeout = undefined;
+    }
+
+    if (!streamOrUrl) {
+        return;
+    }
+
+    if (typeof streamOrUrl === 'string') {
+        // Just a regular URL.
+        video.setAttribute('loop', 'loop');
+        video.src = streamOrUrl;
+        if (video.captureStream) {
+            stream = video.captureStream();
+        }
+        else if (video.mozCaptureStream) {
+            stream = video.mozCaptureStream();
+        }
+        else {
+            alert('Cannot capture video stream!');
+            return;
+        }
+    }
+    else {
+        // We have an actual MediaStream.
+        stream = streamOrUrl;
+        if (stream.active) {
+            setSrc();
+        }
+        else if ('onactive' in stream) {
+            stream.onactive = setSrc;
+        }
+        else if (!onActiveTimeout) {
+            setSrc();
+        }
+        function setSrc() {
+            onActiveTimeout = undefined;
+            if (!stream) {
+                return;
+            }
+            if (!stream.active) {
+                // Safari needs a timeout to try again.
+                console.log('try again');
+                onActiveTimeout = setTimeout(setSrc, 500);
+                return;
+            }
+            console.log('adding active video stream');
+            try {
+                video.srcObject = stream;
+            }
+            catch (e) {
+                var url = (window.URL || window.webkitURL);
+                video.src = url ? url.createObjectURL(stream) : stream;
+            }
+        };
+    }
 }
 
 
-function stopVideo(video) {
+function placeVideo(videoPlacement) {
+    // Place a new video tag.
+    var v = document.createElement('video');
+    v.playsInline = true;
+    v.autoplay = true;
+    videoPlacement.appendChild(v);
+    video = v;
+
+    // Mute everywhere except Firefox, which mutes when we start streaming
+    // and won't stream audio if we mute it manually.
+    if (!video.mozCaptureStream) {
+        video.volume = 0;
+    }
+}
+
+
+function unplaceVideo() {
     if (!video) {
-        return;
+        return false;
     }
-    if (!video.paused) {
-        video.pause();
-    }
-    video.style.background = 'blue';
-    try {
-        if (video.srcObject && video.srcObject.stop) {
-            video.srcObject.stop();
-        }
-        else if (video.srcObject && video.srcObject.getTracks) {
-            var tracks = video.srcObject.getTracks();
-            for (var i = 0; i < tracks.length; i ++) {
-                tracks[i].stop();
-            }
-        }
-        video.srcObject = null;
-    }
-    catch (e) {
-        console.log('Error stopping srcObject', e);
-    }
-    video.removeAttribute('src');
-    video.currentTime = 0;
-    video.load();
+    video.parentElement.removeChild(video);
+    video = undefined;
+    return true;
 }
 
 

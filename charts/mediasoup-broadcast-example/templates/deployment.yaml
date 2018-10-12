@@ -30,7 +30,7 @@ spec:
               value: {{ .Values.service.containerPort | quote }}
           {{- if .Values.service.hostNetworkIP }}
             # - name: RTC_IPV4
-            - name: RTC_ANNOUNCE_IPV4
+            - name: RTC_ANNOUNCED_IPV4
               value: {{ .Values.service.hostNetworkIP }}
           {{- end }}
           ports:

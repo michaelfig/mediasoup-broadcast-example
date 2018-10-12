@@ -1,43 +1,10 @@
 'use strict';
 var ws;
 var room;
-var video;
-var stream;
 var transport;
 
-function maybePlay() {
-    video.style.background = 'black';
-    if (video.srcObject || video.src) {
-        video.play()
-            .catch(function playError(e) {
-                console.log('Cannot play video', e);
-            });
-    }
-}
-
-var toAdd = [];
-function dequeueConsumers() {
-    if (!transport || transport.connectionState === 'closed') {
-        if (!room) {
-            transport = undefined;
-            return;
-        }
-        transport = room.createTransport('recv');
-        transport.on('connectionstatechange', dequeueConsumers);
-    }
-    while (toAdd.length) {
-        var consumer = toAdd.shift();
-        consumer.receive(transport)
-            .then(function receiveTrack(track) {
-                stream.addTrack(track);
-            })
-            .catch(function onError(e) {
-                console.log('Cannot add track', e);
-            });
-    }
-}
-
 function startStream(peer) {
+    var stream = new MediaStream();
     function addConsumer(consumer) {
         if (!consumer.supported) {
             console.log('consumer', consumer.id, 'not supported');
@@ -46,6 +13,15 @@ function startStream(peer) {
         consumer.receive(transport)
             .then(function receiveTrack(track) {
                 stream.addTrack(track);
+                consumer.on('close', function closeConsumer() {
+                    // Remove the old track.
+                    stream.removeTrack(track);
+                    if (stream.getTracks().length === 0) {
+                        // Replace the stream.
+                        stream = new MediaStream();
+                        setVideoSource(stream);
+                    }
+                });
             })
             .catch(function onError(e) {
                 console.log('Cannot add track', e);
@@ -54,17 +30,19 @@ function startStream(peer) {
     
     // Add consumers that are added later...
     peer.on('newconsumer', addConsumer);
+    peer.on('closed', function closedPeer() {
+        setVideoSource();
+    });
     // ... as well as the ones that were already present.
     for (var i = 0; i < peer.consumers.length; i ++) {
         addConsumer(peer.consumers[i]);
     }
+    return stream;
 }
 
 function subscribeClick() {
     stopSubscribeClick();
-
-    setVideoSource(video, new MediaStream());
-    maybePlay();
+    placeVideo(document.querySelector('#videoPlacement'));
 
     var channel = document.querySelector('#subChannel').value;
     var password = document.querySelector('#subPassword').value;
@@ -78,14 +56,12 @@ function subscribeClick() {
             // Stream it if it is new...
             room.on('newpeer', function newPeer(peer) {
                 console.log('New peer detected:', peer.name);
-                stopVideo(video);
-                setVideoSource(video, new MediaStream());
-                maybePlay();
-                startStream(peer);
+                setVideoSource(startStream(peer));
             });
             // ... or if it already exists.
             if (ps.peers[0]) {
-                startStream(ps.peers[0]);
+                console.log('Existing peer detected:', ps.peers[0].name);
+                setVideoSource(startStream(ps.peers[0]));
             }
         })
         .catch(function onError(err) {
@@ -94,23 +70,23 @@ function subscribeClick() {
 }
 
 function stopSubscribeClick() {
-    stopVideo(video);
+    setVideoSource();
+    unplaceVideo();
+    if (transport) {
+        transport.close();
+        transport = undefined;
+    }
+    if (room) {
+        room.leave();
+        room = undefined;
+    }
     if (ws) {
         ws.close();
         ws = undefined;
     }
-    stream = undefined;
-    transport = undefined;
-    room = undefined;
 }
 
 function subscriberLoad() {
-    video = document.querySelector('.mainVideo.rtc');
-    video.oncanplay = maybePlay;
-    if (video.readyState >= 3) {
-        maybePlay();
-    }
-
     var subscribe = document.querySelector('button#subscribe');
     var stopSubscribe = document.querySelector('button#stopSubscribe');
     subscribe.addEventListener('click', subscribeClick);

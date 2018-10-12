@@ -25,12 +25,14 @@ html {
     flex: 0 0 auto;
 }
 
-.mainVideo {
+#videoPlacement {
     background: blue;
     flex: 1 0 0;
     width: 100%;
 }
 
-.mainVideo.cam {
-    display: none;
+#videoPlacement video {
+    width: 100%;
+    height: 100%;
+    background: black;
 }

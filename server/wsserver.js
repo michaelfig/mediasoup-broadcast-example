@@ -5,15 +5,15 @@ const msOptions = {
     rtcIPv4: process.env.RTC_IPV4 || true,
     rtcIPv6: process.env.RTC_IPV6 || false,
 };
-if (process.env.RTC_ANNOUNCE_IPV4) {
+if (process.env.RTC_ANNOUNCED_IPV4) {
     // This is the external IP address that routes to the current
     // instance.  For cloud providers or Kubernetes, this
     // will be a different address than the connected network
     // interface will use.
-    msOptions.rtcAnnouncedIPv4 = process.env.RTC_ANNOUNCE_IPV4;
+    msOptions.rtcAnnouncedIPv4 = process.env.RTC_ANNOUNCED_IPV4;
 }
-if (process.env.RTC_ANNOUNCE_IPV6) {
-    msOptions.rtcAnnouncedIPv6 = process.env.RTC_ANNOUNCE_IPV6;
+if (process.env.RTC_ANNOUNCED_IPV6) {
+    msOptions.rtcAnnouncedIPv6 = process.env.RTC_ANNOUNCED_IPV6;
 }
 const ms = mediasoup.Server(msOptions);
 
