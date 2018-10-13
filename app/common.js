@@ -1,10 +1,9 @@
 'use strict';
 var ms = window.mediasoupClient;
-var video;
 var stream;
 
 var onActiveTimeout;
-function setVideoSource(streamOrUrl) {
+function setVideoSource(video, streamOrUrl) {
     if (stream) {
         try {
             if (stream.stop) {
@@ -21,6 +20,13 @@ function setVideoSource(streamOrUrl) {
             console.log('Error stopping stream', e);
         }
         stream = undefined;
+        if (video) {
+            try {
+                video.srcObject = null;
+            }
+            catch (e) {}
+            video.src = '';
+        }
     }
 
     if (onActiveTimeout) {
@@ -29,12 +35,15 @@ function setVideoSource(streamOrUrl) {
     }
 
     if (!streamOrUrl) {
+        if (video) {
+            video.style.background = 'blue';
+        }
         return;
     }
 
     if (typeof streamOrUrl === 'string') {
         // Just a regular URL.
-        video.setAttribute('loop', 'loop');
+        video.style.background = 'black';
         video.src = streamOrUrl;
         if (video.captureStream) {
             stream = video.captureStream();
@@ -66,11 +75,12 @@ function setVideoSource(streamOrUrl) {
             }
             if (!stream.active) {
                 // Safari needs a timeout to try again.
-                console.log('try again');
+                // console.log('try again');
                 onActiveTimeout = setTimeout(setSrc, 500);
                 return;
             }
             console.log('adding active video stream');
+            video.style.background = 'black';
             try {
                 video.srcObject = stream;
             }
@@ -85,26 +95,26 @@ function setVideoSource(streamOrUrl) {
 
 function placeVideo(videoPlacement) {
     // Place a new video tag.
-    var v = document.createElement('video');
-    v.playsInline = true;
-    v.autoplay = true;
-    videoPlacement.appendChild(v);
-    video = v;
+    var video = document.createElement('video');
+    video.playsInline = true;
+    video.autoplay = true;
+    video.loop = true;
+    videoPlacement.appendChild(video);
 
     // Mute everywhere except Firefox, which mutes when we start streaming
     // and won't stream audio if we mute it manually.
     if (!video.mozCaptureStream) {
         video.volume = 0;
     }
+    return video;
 }
 
 
-function unplaceVideo() {
+function unplaceVideo(video) {
     if (!video) {
         return false;
     }
     video.parentElement.removeChild(video);
-    video = undefined;
     return true;
 }
 

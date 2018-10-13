@@ -3,6 +3,7 @@ var ws;
 var room;
 var stream;
 var transport;
+var video;
 var producers = {};
 
 function connectProducer(type, track) {
@@ -62,8 +63,7 @@ function captureClick() {
         })
         .then(function successCallback(stream) {
                 // Send the output of the media to the video.
-                placeVideo(document.querySelector('#videoPlacement'));
-                setVideoSource(stream);
+                setVideoSource(video, stream);
                 maybeStream('cam');
             })
         .catch(function errorCallback(error) {
@@ -73,8 +73,7 @@ function captureClick() {
     else if (src.id.match(/^url/i)) {
         stopCaptureClick();
         var url = document.querySelector('input#url').value;
-        placeVideo(document.querySelector('#videoPlacement'));
-        setVideoSource(url);
+        setVideoSource(video, url);
         maybeStream(url);
     }
     else {
@@ -87,8 +86,7 @@ function stopCaptureClick() {
     for (var type in producers) {
         connectProducer(type);
     }
-    setVideoSource();
-    unplaceVideo();
+    setVideoSource(video);
 }
 
 function publishClick() {
@@ -124,6 +122,7 @@ function publisherLoad() {
     var stopCapture = document.querySelector('button#stopCapture');
     var publish = document.querySelector('button#publish');
     var stopPublish = document.querySelector('button#stopPublish');
+    video = placeVideo(document.querySelector('#videoPlacement'));
     capture.addEventListener('click', captureClick);
     stopCapture.addEventListener('click', stopCaptureClick);
     publish.addEventListener('click', publishClick);

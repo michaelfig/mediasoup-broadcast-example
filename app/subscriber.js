@@ -2,6 +2,7 @@
 var ws;
 var room;
 var transport;
+var video;
 
 function startStream(peer) {
     var stream = new MediaStream();
@@ -19,7 +20,7 @@ function startStream(peer) {
                     if (stream.getTracks().length === 0) {
                         // Replace the stream.
                         stream = new MediaStream();
-                        setVideoSource(stream);
+                        setVideoSource(video, stream);
                     }
                 });
             })
@@ -31,7 +32,7 @@ function startStream(peer) {
     // Add consumers that are added later...
     peer.on('newconsumer', addConsumer);
     peer.on('closed', function closedPeer() {
-        setVideoSource();
+        setVideoSource(video);
     });
     // ... as well as the ones that were already present.
     for (var i = 0; i < peer.consumers.length; i ++) {
@@ -42,7 +43,6 @@ function startStream(peer) {
 
 function subscribeClick() {
     stopSubscribeClick();
-    placeVideo(document.querySelector('#videoPlacement'));
 
     var channel = document.querySelector('#subChannel').value;
     var password = document.querySelector('#subPassword').value;
@@ -56,12 +56,12 @@ function subscribeClick() {
             // Stream it if it is new...
             room.on('newpeer', function newPeer(peer) {
                 console.log('New peer detected:', peer.name);
-                setVideoSource(startStream(peer));
+                setVideoSource(video, startStream(peer));
             });
             // ... or if it already exists.
             if (ps.peers[0]) {
                 console.log('Existing peer detected:', ps.peers[0].name);
-                setVideoSource(startStream(ps.peers[0]));
+                setVideoSource(video, startStream(ps.peers[0]));
             }
         })
         .catch(function onError(err) {
@@ -70,8 +70,7 @@ function subscribeClick() {
 }
 
 function stopSubscribeClick() {
-    setVideoSource();
-    unplaceVideo();
+    setVideoSource(video);
     if (transport) {
         transport.close();
         transport = undefined;
@@ -89,6 +88,7 @@ function stopSubscribeClick() {
 function subscriberLoad() {
     var subscribe = document.querySelector('button#subscribe');
     var stopSubscribe = document.querySelector('button#stopSubscribe');
+    video = placeVideo(document.querySelector('#videoPlacement'));
     subscribe.addEventListener('click', subscribeClick);
     stopSubscribe.addEventListener('click', stopSubscribeClick);
 }

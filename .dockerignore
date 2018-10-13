@@ -1,2 +1,3 @@
-#app/mediasoup-client.js
 node_modules/
+build.sh
+Dockerfile
