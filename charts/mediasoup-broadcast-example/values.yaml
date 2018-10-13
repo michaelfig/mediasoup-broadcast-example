@@ -23,7 +23,7 @@ service:
   # <hostNetworkIPSelector>=<hostNetworkIP>
   # hostNetworkIP: 192.168.1.25
   # You will need to label your node with
-  # kubectl label node <MY-PUBLIC-NODE> hostNetworkIP=192.168.1.25
+  #   kubectl label node <MY-PUBLIC-NODE> hostNetworkIP=192.168.1.25
   # and the server will only run on that node with hostNetwork: true
 
 ingress:

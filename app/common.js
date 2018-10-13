@@ -107,6 +107,8 @@ function pubsubClient(channel, password, isPublisher) {
             errors[reqid] = function onError(payload) {
                 alert('Cannot ' + kind + ' channel: ' + payload);
             };
+
+            // FIXME: Send your own connection-initiation packet.
             ws.send(JSON.stringify({type: 'MS_SEND', payload: {kind: kind, password: password}, meta: {id: reqid, channel: channel}}));
         };
         ws.onclose = function onClose(event) {
