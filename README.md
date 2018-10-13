@@ -1,12 +1,12 @@
-= Mediasoup Broadcast Example
+# Mediasoup Broadcast Example
 
 [Mediasoup](https://mediasoup.org/) is a Javascript library that provides a WebRTC SFU (Selective Forwarding Unit), which enables modern browsers on all platforms (Chrome, Edge, Firefox, and Safari, desktop and mobile) to use Real Time Communications for sending and receiving audio/video streams with just a single publically-accessible server (no need for transcoding or direct connections between peers as is necessary for other WebRTC setups).
 
-This project is a vanilla Javascript example of how to use Mediasoup to support the specific case of one-to-many broadcast audio/video on individual "channels".  I prefer writing Typescript, but I wanted to demonstrate a minimal implementation for learning purposes.  It was also my goal to get something usable within a week, from scratch, using only the Mediasoup and Mediasoup Client API documentation and publically-accessible Web API documentation as references.
+This project is a vanilla Javascript example of how to use Mediasoup to support the specific case of one-to-many broadcast audio/video on individual "channels".  I prefer writing Typescript, but I wanted to demonstrate a minimal implementation for learning purposes.
 
 There are no techniques borrowed from other code, just the docs.  Accordingly, the license for this code is MIT (simple, permissive) to encourage you to derive your own software from it without legal worries.  Pull requests are welcome!  I don't want to add more features, but polishing and simplifying this example are important to me.  See the TODO.md for suggested contributions.
 
-== Quickstart
+## Quickstart
 
 For simple tests, run:
 
@@ -28,7 +28,7 @@ I deliberately chose Opus and H.264 for the only supported A/V codecs, because t
 
 Read the following sections to understand more about what you will need to change when you build your own broadcast system.
 
-== app/
+## app/
 
 This directory contains the subscriber (index.html) and publisher (publish.html) for the server.  It uses the Mediasoup Client library to handle the protocol requests to and from the Mediasoup server.  The manipulation of the video and stream objects was the hardest to get right for all browsers, so I encourage you to crib the techniques I used.
 
@@ -36,7 +36,7 @@ Until I have a chance to refactor, you should know that I tend to write code fro
 
 * common.js - Look for the FIXMEs to see what may need to change, specifically the authentication process.
 
-== server/
+## server/
 
 This directory contains the Node.js server-side code that coordinates interaction between the publisher, the subscriber, and Mediasoup itself.  Mediasoup does not specify a signalling protocol, so this server uses plain WebSocket (via the ws module) with JSON-formatted messages.
 
@@ -52,7 +52,7 @@ Note the following environment variables affect the server:
 
 * auth.js - replace this file with your own implementation of authentication for your publisher and subscriber.
 
-== Bonus: Docker and Kubernetes
+## Bonus: Docker and Kubernetes
 
 For extra credit, you can run the server under Docker.  You will need host networking to allow the Docker instance to access all the TCP and UDP ports it needs (see above RTC_ANNOUNCED_IPV4).  Docker doesn't allow exposing port ranges.
 
@@ -64,6 +64,12 @@ $ kubectl label node <MY-NODE> hostNetworkIP=<MY-IP>
 
 Refer to build.sh and charts/*.yaml for rudimentary hints on how to install it.
 
+## Credits
+
+Thanks a lot to Iñaki Baz Castillo for the wonderful Mediasoup software, and quick and responsive support of it.
+
+I, Michael FIG, implemented this example within a week, from scratch, using only the Mediasoup and Mediasoup Client API documentation and publically-accessible Web API documentation as references.  I hope this helps you jumpstart your own projects!
+
 Have fun!
 
-Michael FIG <michael@fig.org>, 2018-10-13
+Michael FIG <michael+ms@fig.org>, 2018-10-13
