@@ -84,7 +84,7 @@ function stopSubscribeClick() {
 function subscriberLoad() {
     var subscribe = document.querySelector('button#subscribe');
     var stopSubscribe = document.querySelector('button#stopSubscribe');
-    video = placeVideo(document.querySelector('#videoPlacement'));
+    video = document.querySelector('video#subVideo');
     subscribe.addEventListener('click', subscribeClick);
     stopSubscribe.addEventListener('click', stopSubscribeClick);
 }

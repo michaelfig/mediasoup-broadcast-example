@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html>
     <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
         <title>Subscriber :: Mediasoup Broadcast Example</title>
         <link rel="stylesheet" type="text/css" href="common.css" />
     </head>
@@ -21,7 +23,9 @@
                         <button id="stopSubscribe">Stop Subscribing</button></td> 
                 </tr>
             </table>
-            <div id="videoPlacement"></div>
+            <div class="videoContainer">
+                <video id="subVideo" autoplay playsinline></video>
+            </div>
         </div>
         <script type="text/javascript" src="mediasoup-client.js"></script>
         <script type="text/javascript" src="subscriber.js"></script>

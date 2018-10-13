@@ -74,32 +74,6 @@ function setVideoSource(video, streamOrUrl) {
 }
 
 
-function placeVideo(videoPlacement) {
-    // Place a new video tag.
-    var video = document.createElement('video');
-    video.playsInline = true;
-    video.autoplay = true;
-    video.loop = true;
-    videoPlacement.appendChild(video);
-
-    // Mute everywhere except Firefox, which mutes when we start streaming
-    // and won't stream audio if we mute it manually.
-    if (!video.mozCaptureStream) {
-        video.volume = 0;
-    }
-    return video;
-}
-
-
-function unplaceVideo(video) {
-    if (!video) {
-        return false;
-    }
-    video.parentElement.removeChild(video);
-    return true;
-}
-
-
 function pubsubClient(channel, password, isPublisher) {
     return new Promise(function executor(resolve, reject) {
         var kind = isPublisher ? 'publish' : 'subscribe';

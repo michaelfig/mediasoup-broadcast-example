@@ -118,7 +118,14 @@ function publisherLoad() {
     var stopCapture = document.querySelector('button#stopCapture');
     var publish = document.querySelector('button#publish');
     var stopPublish = document.querySelector('button#stopPublish');
-    video = placeVideo(document.querySelector('#videoPlacement'));
+    video = document.querySelector('video#pubVideo');
+
+    // Mute everywhere except Firefox, which mutes when we start streaming
+    // and won't stream audio if we mute it manually.
+    if (!video.mozCaptureStream) {
+        video.volume = 0;
+    }
+
     capture.addEventListener('click', captureClick);
     stopCapture.addEventListener('click', stopCaptureClick);
     publish.addEventListener('click', publishClick);

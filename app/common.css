@@ -2,17 +2,21 @@
     box-sizing: border-box;
 }
 
-input#url {
-    width: 40em;
-}
-
-html, body {
+html {
     height: 100%;
     margin: 0px;
+    padding: 0px;
 }
 
-html {
+body {
+    height: 100%;
+    height: calc(100% - 1px);
+    margin: 0px;
     padding: 5px;
+}
+
+input#url {
+    width: 40em;
 }
 
 .container {
@@ -25,13 +29,14 @@ html {
     flex: 0 0 auto;
 }
 
-#videoPlacement {
+.videoContainer {
     background: blue;
     flex: 1 0 0;
     width: 100%;
+    min-height: 0;
 }
 
-#videoPlacement video {
+video#subVideo, video#pubVideo {
     width: 100%;
     height: 100%;
 }

@@ -1,7 +1,7 @@
 #! /bin/sh
 set -e
 NAME=mediasoup-broadcast-example
-KUBE_CONTEXT=${KUBE_CONTEXT-ts}
+KUBE_CONTEXT=${KUBE_CONTEXT-laipoc}
 thisdir=`dirname "$0"`
 export KUBE_CONTEXT
 case "$1" in
