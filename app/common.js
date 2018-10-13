@@ -20,13 +20,6 @@ function setVideoSource(video, streamOrUrl) {
             console.log('Error stopping stream', e);
         }
         stream = undefined;
-        if (video) {
-            try {
-                video.srcObject = null;
-            }
-            catch (e) {}
-            video.src = '';
-        }
     }
 
     if (onActiveTimeout) {
@@ -36,7 +29,13 @@ function setVideoSource(video, streamOrUrl) {
 
     if (!streamOrUrl) {
         if (video) {
+            video.removeAttribute('src');
+            try {
+                video.srcObject = null;
+            }
+            catch (e) {}
             video.style.background = 'blue';
+            video.load();
         }
         return;
     }
@@ -59,26 +58,8 @@ function setVideoSource(video, streamOrUrl) {
     else {
         // We have an actual MediaStream.
         stream = streamOrUrl;
-        if (stream.active) {
-            setSrc();
-        }
-        else if ('onactive' in stream) {
-            stream.onactive = setSrc;
-        }
-        else if (!onActiveTimeout) {
-            setSrc();
-        }
+        whenStreamIsActive(function getStream() { return stream }, setSrc);
         function setSrc() {
-            onActiveTimeout = undefined;
-            if (!stream) {
-                return;
-            }
-            if (!stream.active) {
-                // Safari needs a timeout to try again.
-                // console.log('try again');
-                onActiveTimeout = setTimeout(setSrc, 500);
-                return;
-            }
             console.log('adding active video stream');
             video.style.background = 'black';
             try {
@@ -88,7 +69,7 @@ function setVideoSource(video, streamOrUrl) {
                 var url = (window.URL || window.webkitURL);
                 video.src = url ? url.createObjectURL(stream) : stream;
             }
-        };
+        }
     }
 }
 
@@ -212,4 +193,39 @@ function pubsubClient(channel, password, isPublisher) {
             ws.send(JSON.stringify({type: 'MS_SEND', payload: notification, meta: {channel: channel, notification: true}}));
         });
     });
+}
+
+var streamActiveTimeout = {};
+function whenStreamIsActive(getStream, callback) {
+    var stream = getStream();
+    if (!stream) {
+        return;
+    }
+    var id = stream.id;
+    if (stream.active) {
+        callback();
+    }
+    else if ('onactive' in stream) {
+        stream.onactive = maybeCallback;
+    }
+    else if (!streamActiveTimeout[id]) {
+        maybeCallback();
+    }
+    function maybeCallback() {
+        delete streamActiveTimeout[id];
+        var stream = getStream();
+        if (!stream) {
+            return;
+        }
+        if (stream.onactive === maybeCallback) {
+            stream.onactive = null;
+        }
+        if (!stream.active) {
+            // Safari needs a timeout to try again.
+            // console.log('try again');
+            streamActiveTimeout[id] = setTimeout(maybeCallback, 500);
+            return;
+        }
+        callback();
+    }
 }

@@ -8,12 +8,12 @@ var producers = {};
 
 function connectProducer(type, track) {
     if (producers[type]) {
-        console.log('stop producing', type);
+        console.log('stop producing', type, producers[type].track.id);
         producers[type].close();
         delete producers[type];
     }
     if (room && track) {
-        console.log('producing', type);
+        console.log('producing', type, track.id);
         producers[type] = room.createProducer(track);
         producers[type].send(transport);
     }
@@ -34,10 +34,7 @@ function maybeStream(kind) {
         connectProducer('audio', stream.getAudioTracks()[0]);
         connectProducer('video', stream.getVideoTracks()[0]);
     }
-    stream.onactive = doConnects;
-    if (stream.active) {
-        doConnects();
-    }
+    whenStreamIsActive(function getStream() { return stream }, doConnects);
 }
 
 
@@ -83,10 +80,9 @@ function captureClick() {
 }
 
 function stopCaptureClick() {
-    for (var type in producers) {
-        connectProducer(type);
-    }
     setVideoSource(video);
+    connectProducer('audio');
+    connectProducer('video');
 }
 
 function publishClick() {

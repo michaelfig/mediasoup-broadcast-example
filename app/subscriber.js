@@ -16,9 +16,11 @@ function startStream(peer) {
                 stream.addTrack(track);
                 consumer.on('close', function closeConsumer() {
                     // Remove the old track.
+                    console.log('removing the old track', track.id);
                     stream.removeTrack(track);
                     if (stream.getTracks().length === 0) {
                         // Replace the stream.
+                        console.log('replacing stream');
                         stream = new MediaStream();
                         setVideoSource(video, stream);
                     }
@@ -71,14 +73,8 @@ function subscribeClick() {
 
 function stopSubscribeClick() {
     setVideoSource(video);
-    if (transport) {
-        transport.close();
-        transport = undefined;
-    }
-    if (room) {
-        room.leave();
-        room = undefined;
-    }
+    transport = undefined;
+    room = undefined;
     if (ws) {
         ws.close();
         ws = undefined;
