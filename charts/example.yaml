@@ -1,0 +1,21 @@
+image:
+  repository: registry.example.com/mediasoup-broadcast-example
+  tag: latest
+  pullPolicy: Always
+service:
+  # Needs:
+  # kubectl label node <MY-NODE> hostNetworkIP=1.2.3.4
+  hostNetworkIP: 1.2.3.4
+ingress:
+  annotations:
+    ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "1800"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "1800"
+    certmanager.k8s.io/cluster-issuer: ca-issuer
+  enabled: true
+  hosts:
+  - msbe.example.com
+  tls:
+    - secretName: msbe-example-secret
+      hosts:
+      - msbe.example.com

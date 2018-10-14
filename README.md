@@ -4,7 +4,7 @@
 
 This project is a vanilla Javascript example of how to use Mediasoup to support the specific case of one-to-many broadcast audio/video on individual "channels".  I prefer writing Typescript, but I wanted to demonstrate a minimal implementation for learning purposes.
 
-There are no techniques borrowed from other code, just the docs.  Accordingly, the license for this code is MIT (simple, permissive) to encourage you to derive your own software from it without legal worries.  Pull requests are welcome!  I don't want to add more features, but polishing and simplifying this example are important to me.  See the TODO.md for suggested contributions.
+There are no techniques borrowed from other code, just the docs.  Accordingly, the ISC license (simple, permissive) is used for this code to encourage you to derive your own software from it without legal worries.  Pull requests are welcome!  I don't want to add more features, but polishing and simplifying this example are important to me.  See the TODO.md for suggested contributions.
 
 ## Quickstart
 
@@ -62,7 +62,7 @@ If you like Kubernetes, there is a Helm chart in charts/mediasoup-broadcast-exam
 $ kubectl label node <MY-NODE> hostNetworkIP=<MY-IP>
 ```
 
-Refer to build.sh and charts/*.yaml for rudimentary hints on how to install it.
+Refer to build.sh and charts/example.yaml for rudimentary hints on how to install it.
 
 ## Credits
 
