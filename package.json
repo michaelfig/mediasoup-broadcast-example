@@ -1,6 +1,6 @@
 {
   "name": "mediasoup-broadcast-example",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Sample WebRTC broadcast client/server for the Mediasoup SFU.",
   "main": "server/index.js",
   "scripts": {

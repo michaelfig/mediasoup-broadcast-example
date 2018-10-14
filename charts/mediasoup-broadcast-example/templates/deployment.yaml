@@ -29,7 +29,6 @@ spec:
             - name: PORT
               value: {{ .Values.service.containerPort | quote }}
           {{- if .Values.service.hostNetworkIP }}
-            # - name: RTC_IPV4
             - name: RTC_ANNOUNCED_IPV4
               value: {{ .Values.service.hostNetworkIP }}
           {{- end }}
@@ -38,9 +37,13 @@ spec:
               containerPort: {{ .Values.service.containerPort }}
               protocol: TCP
           {{- if .Values.service.rtpPort }}
-            - name: rtp
+          # FIXME: Just a sketch of what one day may be supported.
+            - name: rtp-udp
               containerPort: {{ .Values.service.rtpPort }}
               protocol: UDP
+            - name: rtp-tcp
+              containerPort: {{ .Values.service.rtpPort }}
+              protocol: TCP
           {{- end }}
           livenessProbe:
             httpGet:

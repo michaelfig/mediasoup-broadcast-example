@@ -1,6 +1,7 @@
 #! /bin/sh
 set -e
 thisdir=`dirname "$0"`
+REGISTRY=${REGISTRY-michaelfig}
 NAME=mediasoup-broadcast-example
 VERSION=`sed -ne '/^ *"version":/{ s/^.* "version": *"\([^"]*\)".*/\1/; p; q; }' "$thisdir"/package.json`
 
@@ -8,13 +9,18 @@ VERSION=`sed -ne '/^ *"version":/{ s/^.* "version": *"\([^"]*\)".*/\1/; p; q; }'
 KUBE_CONTEXT=${KUBE_CONTEXT-example}
 export KUBE_CONTEXT
 case "$1" in
-push)
+build)
   cd "$thisdir"
-  # Find the name of the Docker registry from charts/$KUBE_CONTEXT.yaml's repository: line.
-  REGISTRY=`sed -ne '/^ *repository:/{ s/^.* \([^/]*\).*$/\1/; p; q; }' charts/"$KUBE_CONTEXT".yaml`
-  docker build -t $REGISTRY/mediasoup-broadcast-example:$VERSION -t $REGISTRY/mediasoup-broadcast-example:latest .
-  docker push $REGISTRY/mediasoup-broadcast-example:$VERSION
-  docker push $REGISTRY/mediasoup-broadcast-example:latest
+  docker build -t michaelfig/mediasoup-broadcast-example:latest .
+  ;;
+
+push)
+  cmd="$1"
+  shift
+  for TAG in latest $VERSION ${1+"$@"}; do
+    docker tag michaelfig/mediasoup-broadcast-example:latest $REGISTRY/mediasoup-broadcast-example:$TAG
+    docker push $REGISTRY/mediasoup-broadcast-example:$TAG
+  done
   ;;
 upgrade|install)
   cd "$thisdir"

@@ -2,6 +2,7 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
+# Note that using hostNetworkIP requires exactly 1 replica!
 replicaCount: 1
 
 image:
@@ -12,19 +13,23 @@ image:
 service:
   type: ClusterIP
   port: 80
-  # A different port that 80, which can cause conflicts when hostNetworkIP is set.
+  # A different port than 80, which can cause conflicts when hostNetworkIP is set.
   containerPort: 5398
 
   # When Kubernetes supports port -1 to mean all ports for
   # ClusterIP or LoadBalancer, you can use the following without hostNetworkIP:
   # rtpPort: -1
 
-  # Set this to use hostNetwork: true on pods, and schedule only where
-  # <hostNetworkIPSelector>=<hostNetworkIP>
-  # hostNetworkIP: 192.168.1.25
-  # You will need to label your node with
-  #   kubectl label node <MY-PUBLIC-NODE> hostNetworkIP=192.168.1.25
-  # and the server will only run on that node with hostNetwork: true
+  # hostNetworkIP: 1.2.3.4 # example IP address
+  #
+  # You will need to label the node to which 1.2.3.4 is routed with:
+  #   kubectl label node <MY-PUBLIC-NODE> hostNetworkIP=1.2.3.4
+  #
+  # Then the pod will use "hostNetwork: true", and it will be scheduled
+  # only on the node returned by:
+  #   kubectl get node -lhostNetworkIP=1.2.3.4
+  #
+  # This also sets the environment variable RTC_ANNOUNCED_IPV4=1.2.3.4
 
 ingress:
   enabled: false
