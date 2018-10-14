@@ -54,7 +54,7 @@ Note the following environment variables affect the server:
 
 ## Bonus: Docker and Kubernetes
 
-For extra credit, you can run the server under Docker.  You will need host networking to allow the Docker instance to access all the TCP and UDP ports it needs (see above RTC_ANNOUNCED_IPV4).  Docker doesn't allow exposing port ranges.
+For extra credit, you can run the server under Docker (the repository is michaelfig/mediasoup-broadcast-example).  You will need host networking to allow the Docker instance to access all the TCP and UDP ports it needs (see above RTC_ANNOUNCED_IPV4).  Docker doesn't allow exposing port ranges.
 
 If you like Kubernetes, there is a Helm chart in charts/mediasoup-broadcast-example.  See the values.yaml in that directory for instructions on using hostNetworkIP.  In short, you will need to schedule the mediasoup-broadcast-example pod (single replica only) to run on a node that has an external IP that meets the requirements of RTC_ANNOUNCED_IPV4.  To accomplish this, you will use "hostNetworkIP: <MY-IP>" in your Helm yaml settings, and then label the node that receives traffic for that public IP with:
 

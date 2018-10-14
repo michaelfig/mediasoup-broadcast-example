@@ -5,7 +5,7 @@
 replicaCount: 1
 
 image:
-  repository: mediasoup-broadcast-example
+  repository: michaelfig/mediasoup-broadcast-example
   tag: stable
   pullPolicy: IfNotPresent
 

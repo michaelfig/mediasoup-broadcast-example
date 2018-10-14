@@ -1,17 +1,20 @@
 #! /bin/sh
 set -e
+thisdir=`dirname "$0"`
 NAME=mediasoup-broadcast-example
+VERSION=`sed -ne '/^ *"version":/{ s/^.* "version": *"\([^"]*\)".*/\1/; p; q; }' "$thisdir"/package.json`
+
 # If KUBE_CONTEXT=example, use --kube-context=example and -fcharts/example.yaml
 KUBE_CONTEXT=${KUBE_CONTEXT-example}
-thisdir=`dirname "$0"`
 export KUBE_CONTEXT
 case "$1" in
-build)
+push)
   cd "$thisdir"
   # Find the name of the Docker registry from charts/$KUBE_CONTEXT.yaml's repository: line.
   REGISTRY=`sed -ne '/^ *repository:/{ s/^.* \([^/]*\).*$/\1/; p; q; }' charts/"$KUBE_CONTEXT".yaml`
-  docker build -t $REGISTRY/mediasoup-broadcast-example .
-  docker push $REGISTRY/mediasoup-broadcast-example
+  docker build -t $REGISTRY/mediasoup-broadcast-example:$VERSION -t $REGISTRY/mediasoup-broadcast-example:latest .
+  docker push $REGISTRY/mediasoup-broadcast-example:$VERSION
+  docker push $REGISTRY/mediasoup-broadcast-example:latest
   ;;
 upgrade|install)
   cd "$thisdir"
@@ -23,12 +26,11 @@ upgrade|install)
     RECREATE=--recreate-pods
   fi
   helm --kube-context="$KUBE_CONTEXT" upgrade \
-    $RECREATE --install $NAME -f charts/"$KUBE_CONTEXT".yaml \
+    $RECREATE --install $NAME -f charts/"$KUBE_CONTEXT".yaml --set=image.tag=$VERSION \
     charts/$NAME ${1+"$@"}
   ;;
-"")
-  $SHELL $0 build
-  $SHELL $0 upgrade
+"" | help)
+  echo "Run: \`$0 upgrade' to helm upgrade using KUBE_CONTEXT=$KUBE_CONTEXT"
   ;;
 *)
   cmd="$1"
