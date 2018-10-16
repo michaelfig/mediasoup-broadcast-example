@@ -29,7 +29,7 @@ upgrade|install)
   # Need --recreate-pods if hostNetworkIP is specified.
   # Otherwise, the old pod is never terminated for the new one to leave Pending.
   if grep -q '^ *hostNetworkIP:' charts/"$KUBE_CONTEXT".yaml; then
-    RECREATE=--recreate-pods
+    RECREATE=${RECREATE---recreate-pods}
   fi
   helm --kube-context="$KUBE_CONTEXT" upgrade \
     $RECREATE --install $NAME -f charts/"$KUBE_CONTEXT".yaml --set=image.tag=$VERSION \

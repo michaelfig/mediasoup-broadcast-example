@@ -30,7 +30,7 @@ else {
     server.listen(PORT, process.env.HOST);
 }
 
-app.use(express.static(`${__dirname}/../app`));
+app.use('/', express.static(`${__dirname}/../app`));
 
 const wss = new WebSocket.Server({noServer: true});
 function heartbeat() {
@@ -57,7 +57,7 @@ server.on('upgrade', function upgrade(req, socket, head) {
     // Upgrade all /pubsub connections to WebSocket.
     const pathname = url.parse(req.url).pathname;
     const addr = socket.remoteAddress + ' ' + socket.remotePort;
-    if (pathname !== '/pubsub') {
+    if (!pathname.match(/\/pubsub$/)) {
         console.log(addr, 'not connecting to /pubsub');
         socket.destroy();
         return;
