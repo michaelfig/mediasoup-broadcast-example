@@ -30,7 +30,12 @@ else {
     server.listen(PORT, process.env.HOST);
 }
 
-app.use('/', express.static(`${__dirname}/../app`));
+const exst = express.static(`${__dirname}/../app`);
+app.use('/', exst);
+if (process.env.INGRESS_PATH) {
+    console.log(`Enabling INGRESS_PATH ${process.env.INGRESS_PATH}`);
+    app.use(process.env.INGRESS_PATH, exst);
+}
 
 const wss = new WebSocket.Server({noServer: true});
 function heartbeat() {
