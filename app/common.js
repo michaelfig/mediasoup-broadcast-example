@@ -82,9 +82,7 @@ function pubsubClient(channel, password, isPublisher) {
             return;
         }
 
-        var room = new ms.Room({
-            requestTimeout: 8000,
-        });
+        var room;
 
         var reqid = 0;
         var pending = {};
@@ -98,6 +96,28 @@ function pubsubClient(channel, password, isPublisher) {
         ws.onopen = function onOpen() {
             connected = true;
             pending[++reqid] = function onPubsub(payload) {
+                room = new ms.Room({
+                    requestTimeout: 8000,
+                    turnServers: payload.turnServers || [],
+                });
+
+                room.on('request', function onRequest(request, callback, errback) {
+                    if (ws.readyState !== ws.OPEN) {
+                        return errback(Error('WebSocket is not open'));
+                    }
+        
+                    pending[++ reqid] = callback;
+                    errors[reqid] = errback;
+                    ws.send(JSON.stringify({type: 'MS_SEND', payload: request, meta: {id: reqid, channel: channel}}));
+                });
+                room.on('notify', function onNotification(notification) {
+                    if (ws.readyState !== ws.OPEN) {
+                        console.log(Error('WebSocket is not open'));
+                        return;
+                    }
+                    ws.send(JSON.stringify({type: 'MS_SEND', payload: notification, meta: {channel: channel, notification: true}}));
+                });
+        
                 room.join(peerName)
                     .then(function (peers) {
                         console.log('Channel', channel, 'joined with peers', peers);
@@ -152,23 +172,6 @@ function pubsubClient(channel, password, isPublisher) {
                 console.log('Error', e, 'handling', JSON.stringify(event.data));
             }
         }
-
-        room.on('request', function onRequest(request, callback, errback) {
-            if (ws.readyState !== ws.OPEN) {
-                return errback(Error('WebSocket is not open'));
-            }
-
-            pending[++ reqid] = callback;
-            errors[reqid] = errback;
-            ws.send(JSON.stringify({type: 'MS_SEND', payload: request, meta: {id: reqid, channel: channel}}));
-        });
-        room.on('notify', function onNotification(notification) {
-            if (ws.readyState !== ws.OPEN) {
-                console.log(Error('WebSocket is not open'));
-                return;
-            }
-            ws.send(JSON.stringify({type: 'MS_SEND', payload: notification, meta: {channel: channel, notification: true}}));
-        });
     });
 }
 

@@ -1,0 +1,47 @@
+# Default values for coturns.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: michaelfig/coturns
+  tag: stable
+  pullPolicy: IfNotPresent
+
+coturns:
+  # tlsSecret: coturns-tls-secret
+  authRealm: Example
+  authSecret: NotVerySecret
+
+service:
+  type: ClusterIP
+  port: 443
+  # hostNetworkIP: 1.2.3.4 # example IP address
+  #
+  # You will need to label the node to which 1.2.3.4 is routed with:
+  #   kubectl label node <MY-PUBLIC-NODE> hostNetworkIP=1.2.3.4
+  #
+  # Then the pod will use "hostNetwork: true", and it will be scheduled
+  # only on the node returned by:
+  #   kubectl get node -lhostNetworkIP=1.2.3.4
+  #
+  # This also sets the environment variable EXTERNAL_IP=1.2.3.4
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #  cpu: 100m
+  #  memory: 128Mi
+  # requests:
+  #  cpu: 100m
+  #  memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

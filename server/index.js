@@ -76,9 +76,9 @@ server.on('upgrade', function upgrade(req, socket, head) {
             if (action.type === 'MS_SEND') {
                 // kind is either 'publish' or 'subscribe'.
                 auth.authorize(addr, action.meta.channel, action.payload)
-                    .then((kind) => {
-                        ws.send(JSON.stringify({type: 'MS_RESPONSE', payload: kind, meta: action.meta}));
-                        wsServer[kind](addr, action.meta.channel, ws);
+                    .then((payload) => {
+                        ws.send(JSON.stringify({type: 'MS_RESPONSE', payload: payload, meta: action.meta}));
+                        wsServer[payload.kind](addr, action.meta.channel, ws);
                     })
                     .catch((e) => {
                         console.log(addr, 'cannot authorize', e);

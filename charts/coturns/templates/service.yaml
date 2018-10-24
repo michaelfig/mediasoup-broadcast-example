@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "coturns.fullname" . }}
+  labels:
+    app: {{ template "coturns.name" . }}
+    chart: {{ template "coturns.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: https
+      protocol: TCP
+      name: https
+  selector:
+    app: {{ template "coturns.name" . }}
+    release: {{ .Release.Name }}

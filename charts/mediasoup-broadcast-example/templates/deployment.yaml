@@ -36,6 +36,14 @@ spec:
             - name: INGRESS_PATH
               value: {{ .Values.ingress.path | quote }}
           {{- end }}
+          {{- if .Values.coturns.turnServers }}
+            - name: TURN_SERVERS
+              value: {{ .Values.coturns.turnServers | quote }}
+          {{- end }}
+          {{- if .Values.coturns.authSecret }}
+            - name: TURN_AUTH_KEY
+              value: {{ .Values.coturns.authSecret | quote }}
+          {{- end }}
           ports:
             - name: http
               containerPort: {{ .Values.service.containerPort }}

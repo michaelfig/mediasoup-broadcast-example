@@ -1,3 +1,7 @@
+coturns:
+  authRealm: Example
+  authSecret: "NotReallyVerySecret!"
+  # tlsSecretName: my-tls-secret
 service:
   # Needs:
   # kubectl label node <MY-NODE> hostNetworkIP=1.2.3.4

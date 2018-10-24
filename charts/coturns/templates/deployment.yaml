@@ -1,0 +1,90 @@
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: {{ template "coturns.fullname" . }}
+  labels:
+    app: {{ template "coturns.name" . }}
+    chart: {{ template "coturns.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "coturns.name" . }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "coturns.name" . }}
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+          {{- if .Values.coturns.authRealm }}
+            - name: AUTH_REALM
+              value: {{ .Values.coturns.authRealm | quote }}
+          {{- end }}
+          {{- if .Values.coturns.tlsSecretName }}
+            - name: TLS_DIRECTORY
+              value: /tls
+          {{- end }}
+            - name: AUTH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secret
+                  key: authSecret
+          {{- if .Values.service.hostNetworkIP }}
+            - name: EXTERNAL_IP
+              value: {{ .Values.service.hostNetworkIP }}
+          {{- end }}
+          {{- if .Values.coturns.tlsSecretName }}
+          volumeMounts:
+            - name: tls-secret-volume
+              mountPath: /tls
+          {{- end }}
+          ports:
+            - name: https
+              containerPort: 443
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: https
+              scheme: HTTPS
+          readinessProbe:
+            httpGet:
+              path: /
+              port: https
+              scheme: HTTPS
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+    {{- if .Values.coturns.tlsSecretName }}
+      volumes:
+        - name: tls-secret-volume
+          secret:
+            secretName: {{ .Values.coturns.tlsSecretName | quote }}
+    {{- end }}
+    {{- if .Values.service.hostNetworkIP }}
+      hostNetwork: true
+    {{- end }}
+    {{- if or .Values.service.hostNetworkIP .Values.nodeSelector }}
+      nodeSelector:
+    {{- end }}
+    {{- if .Values.service.hostNetworkIP }}
+        hostNetworkIP: {{ .Values.service.hostNetworkIP }}
+    {{- end }}
+    {{- with .Values.nodeSelector }}
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}

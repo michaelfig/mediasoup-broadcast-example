@@ -1,0 +1,8 @@
+log-file=stdout
+no-udp
+no-tcp
+tls-listening-port=443
+
+use-auth-secret
+realm=@AUTH_REALM@
+static-auth-secret=@AUTH_SECRET@

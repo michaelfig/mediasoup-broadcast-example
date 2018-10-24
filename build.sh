@@ -4,6 +4,7 @@ thisdir=`dirname "$0"`
 REGISTRY=${REGISTRY-michaelfig}
 NAME=mediasoup-broadcast-example
 VERSION=`sed -ne '/^ *"version":/{ s/^.* "version": *"\([^"]*\)".*/\1/; p; q; }' "$thisdir"/package.json`
+COTURNS_VERSION=4.5.0.7
 
 # If KUBE_CONTEXT=example, use --kube-context=example and -fcharts/example.yaml
 KUBE_CONTEXT=${KUBE_CONTEXT-example}
@@ -14,6 +15,11 @@ build)
   docker build -t michaelfig/mediasoup-broadcast-example:latest .
   ;;
 
+build-coturns)
+  cd "$thisdir"
+  docker build -t michaelfig/coturns:latest coturns
+  ;;
+
 push)
   cmd="$1"
   shift
@@ -22,6 +28,16 @@ push)
     docker push $REGISTRY/mediasoup-broadcast-example:$TAG
   done
   ;;
+
+push-coturns)
+  cmd="$1"
+  shift
+  for TAG in latest $COTURNS_VERSION ${1+"$@"}; do
+    docker tag michaelfig/coturns:latest $REGISTRY/coturns:$TAG
+    docker push $REGISTRY/coturns:$TAG
+  done
+  ;;
+
 upgrade|install)
   cd "$thisdir"
   cmd="$1"
