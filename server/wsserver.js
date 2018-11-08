@@ -135,7 +135,7 @@ function handlePubsub(addr, channel, ws, isPublisher) {
                                     }
                                 }
                                 // console.log(addr, 'sending notification', notification);
-                                sendAction({type: 'MS_NOTIFY', payload: notification});
+                                sendAction({type: 'MS_NOTIFY', payload: notification, meta: {channel: channel}});
                             });
                             console.log(addr, 'new peer joined the room', peerName);
                             if (!isPublisher) {

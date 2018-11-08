@@ -1,5 +1,7 @@
 * Retry failed websocket.
 
+* Modify build.sh so that the package.json used to install dependencies has its version field stripped.
+
 * Help work on better Edge compatibility for Mediasoup.
 
 * Have a more robust protocol filter to limit what the subscriber can do.  Maybe it is okay now... they can send consumers so that the publisher can contact an individual subscriber.

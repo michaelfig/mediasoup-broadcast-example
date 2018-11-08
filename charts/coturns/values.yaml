@@ -11,7 +11,7 @@ image:
 
 coturns:
   # tlsSecret: coturns-tls-secret
-  authRealm: Example
+  authRealm: example.com
   authSecret: NotVerySecret
 
 service:

@@ -1,7 +1,10 @@
 coturns:
   authRealm: Example
   authSecret: "NotReallyVerySecret!"
-  # tlsSecretName: my-tls-secret
+  # Create with:
+  # kubectl create secret tls example-tls-secret --key=example.key --cert=example.crt
+  tlsSecretName: example-tls-secret
+  turnServers: "turns:media.example.com:443?transport=tcp"
 service:
   # Needs:
   # kubectl label node <MY-NODE> hostNetworkIP=1.2.3.4
