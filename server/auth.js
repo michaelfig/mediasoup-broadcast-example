@@ -5,11 +5,12 @@ const crypto = require('crypto');
 
 const SEND_PASSWORD = process.env.SEND_PASSWORD || 'ChangeMe';
 const RECV_PASSWORD = process.env.RECV_PASSWORD || 'NotSecret';
+const TURN_SERVERS = process.env.TURN_SERVERS ? process.env.TURN_SERVERS.split(',') : [];
 const PASSWORD_EXPIRY_SECONDS = 300;
 
 function getPayload(kind) {
-    const turnServers = (process.env.TURN_SERVERS || '').split(',')
-        .map(function addUserPassword(server) {
+    const turnServers = TURN_SERVERS.map(
+        function addUserPassword(server) {
             const key = process.env.TURN_AUTH_KEY;
             if (key) {
                 // Return the TURN REST API credential.
