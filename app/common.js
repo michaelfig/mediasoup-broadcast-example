@@ -93,6 +93,10 @@ function pubsubClient(channel, password, isPublisher) {
         var ws = new WebSocket(wsurl);
         var connected = false;
         var peerName = isPublisher ? 'publisher' : '' + Math.random();
+        function wsSend(obj) {
+            // console.log('send:', obj);
+            ws.send(JSON.stringify(obj));
+        }
         ws.onopen = function onOpen() {
             connected = true;
             pending[++reqid] = function onPubsub(payload) {
@@ -108,14 +112,14 @@ function pubsubClient(channel, password, isPublisher) {
         
                     pending[++ reqid] = callback;
                     errors[reqid] = errback;
-                    ws.send(JSON.stringify({type: 'MS_SEND', payload: request, meta: {id: reqid, channel: channel}}));
+                    wsSend({type: 'MS_SEND', payload: request, meta: {id: reqid, channel: channel}});
                 });
                 room.on('notify', function onNotification(notification) {
                     if (ws.readyState !== ws.OPEN) {
                         console.log(Error('WebSocket is not open'));
                         return;
                     }
-                    ws.send(JSON.stringify({type: 'MS_SEND', payload: notification, meta: {channel: channel, notification: true}}));
+                    wsSend({type: 'MS_SEND', payload: notification, meta: {channel: channel, notification: true}});
                 });
         
                 room.join(peerName)
@@ -130,7 +134,7 @@ function pubsubClient(channel, password, isPublisher) {
             };
 
             // FIXME: Send your own connection-initiation packet.
-            ws.send(JSON.stringify({type: 'MS_SEND', payload: {kind: kind, password: password}, meta: {id: reqid, channel: channel}}));
+            wsSend({type: 'MS_SEND', payload: {kind: kind, password: password}, meta: {id: reqid, channel: channel}});
         };
         ws.onclose = function onClose(event) {
             if (!connected) {
@@ -138,9 +142,10 @@ function pubsubClient(channel, password, isPublisher) {
             }
         };
         ws.onmessage = function onMessage(event) {
-            console.log('received', event.data);
+            // console.log('received', event.data);
             try {
                 var action = JSON.parse(event.data);
+                console.log('recv:', action);
                 switch (action.type) {
                     case 'MS_RESPONSE': {
                         var cb = pending[action.meta.id];

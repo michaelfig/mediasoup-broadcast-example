@@ -15,6 +15,11 @@ if (process.env.RTC_ANNOUNCED_IPV4) {
 if (process.env.RTC_ANNOUNCED_IPV6) {
     msOptions.rtcAnnouncedIPv6 = process.env.RTC_ANNOUNCED_IPV6;
 }
+if (process.env.LOG_LEVEL) {
+    console.log('Setting logLevel to', process.env.LOG_LEVEL)
+    msOptions.logLevel = process.env.LOG_LEVEL;
+    msOptions.logTags = [ 'info', 'ice', 'dlts', 'rtp', 'srtp', 'rtcp', 'rbe', 'rtx' ];
+}
 const ms = mediasoup.Server(msOptions);
 
 const PUBLISHER_PEER = 'publisher';
