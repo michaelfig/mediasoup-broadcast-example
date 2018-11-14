@@ -12,6 +12,11 @@ export KUBE_CONTEXT
 case "$1" in
 build)
   cd "$thisdir"
+  rm -rf _deps
+  mkdir _deps
+  for f in package*.json; do
+    sed -e 's/^  "version": ".*",/  "version": "1.0.0",/' "$f" > _deps/"$f"
+  done
   docker build -t michaelfig/mediasoup-broadcast-example:latest .
   ;;
 
