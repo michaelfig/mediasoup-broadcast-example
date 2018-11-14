@@ -214,3 +214,12 @@ function whenStreamIsActive(getStream, callback) {
         callback();
     }
 }
+
+
+function onEnterPerform(el, cb) {
+    el.addEventListener('keyup', function onKeyUp(event) {
+        if (event.keyCode === 13) {
+            cb();
+        }
+    });
+}

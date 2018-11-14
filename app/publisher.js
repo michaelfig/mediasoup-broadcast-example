@@ -130,4 +130,7 @@ function publisherLoad() {
     stopCapture.addEventListener('click', stopCaptureClick);
     publish.addEventListener('click', publishClick);
     stopPublish.addEventListener('click', stopPublishClick);
+
+    onEnterPerform(document.querySelector('#pubChannel'), publishClick);
+    onEnterPerform(document.querySelector('#pubPassword'), publishClick);
 }

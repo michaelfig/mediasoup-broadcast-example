@@ -65,6 +65,9 @@ function subscribeClick() {
                 console.log('Existing peer detected:', ps.peers[0].name);
                 setVideoSource(video, startStream(ps.peers[0]));
             }
+            else {
+                video.style.background = '#202020';
+            }
         })
         .catch(function onError(err) {
             alert('Cannot subscribe to channel: ' + err);
@@ -87,4 +90,6 @@ function subscriberLoad() {
     video = document.querySelector('video#subVideo');
     subscribe.addEventListener('click', subscribeClick);
     stopSubscribe.addEventListener('click', stopSubscribeClick);
+    onEnterPerform(document.querySelector('#subChannel'), subscribeClick);
+    onEnterPerform(document.querySelector('#subPassword'), subscribeClick);
 }
