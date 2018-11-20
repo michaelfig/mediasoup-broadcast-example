@@ -12,15 +12,18 @@
                 <tr>
                     <th>Channel:</th>
                     <td><input type="text" value="test" id="subChannel"/></td>
+                    <td><input type="radio" name="prof" id="profHigh" value="high" checked="checked" /><label for="profHigh">High</label></td>
                 </tr>
                 <tr>
                     <th>Password:</th>
                     <td><input type="password" value="NotSecret" id="subPassword"/></td>
+                    <td><input type="radio" name="prof" id="profMed" value="medium" /><label for="profMed">Medium</label></td>
                 </tr>
                 <tr>
                     <td></td>
                     <td><button id="subscribe">Subscribe</button>
-                        <button id="stopSubscribe">Stop Subscribing</button></td> 
+                        <button id="stopSubscribe">Stop Subscribing</button></td>
+                    <td><input type="radio" name="prof" id="profLow" value="low" /><label for="profLow">Low</label></td>
                 </tr>
             </table>
             <div class="videoContainer">

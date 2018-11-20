@@ -14,7 +14,8 @@ function connectProducer(type, track) {
     }
     if (room && track) {
         console.log('producing', type, track.id);
-        producers[type] = room.createProducer(track);
+        var opts = type === 'video' ? {simulcast: true} : {};
+        producers[type] = room.createProducer(track, opts);
         producers[type].send(transport);
     }
 }

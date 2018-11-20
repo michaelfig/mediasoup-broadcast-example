@@ -7,7 +7,7 @@ VERSION=`sed -ne '/^ *"version":/{ s/^.* "version": *"\([^"]*\)".*/\1/; p; q; }'
 COTURNS_VERSION=4.5.0.7
 
 # If KUBE_CONTEXT=example, use --kube-context=example and -fcharts/example.yaml
-KUBE_CONTEXT=${KUBE_CONTEXT-example}
+KUBE_CONTEXT=${KUBE_CONTEXT-`kubectl config current-context`}
 export KUBE_CONTEXT
 case "$1" in
 build)

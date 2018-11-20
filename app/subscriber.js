@@ -4,13 +4,14 @@ var room;
 var transport;
 var video;
 
-function startStream(peer) {
+function startStream(peer, profile) {
     var stream = new MediaStream();
     function addConsumer(consumer) {
         if (!consumer.supported) {
             console.log('consumer', consumer.id, 'not supported');
             return;
         }
+        consumer.setPreferredProfile(profile);
         consumer.receive(transport)
             .then(function receiveTrack(track) {
                 stream.addTrack(track);
@@ -48,6 +49,7 @@ function subscribeClick() {
 
     var channel = document.querySelector('#subChannel').value;
     var password = document.querySelector('#subPassword').value;
+    var profile = document.querySelector('input[name="prof"]:checked').value;
 
     pubsubClient(channel, password, false)
         .then(function havePubsub(ps) {
@@ -58,12 +60,12 @@ function subscribeClick() {
             // Stream it if it is new...
             room.on('newpeer', function newPeer(peer) {
                 console.log('New peer detected:', peer.name);
-                setVideoSource(video, startStream(peer));
+                setVideoSource(video, startStream(peer, profile));
             });
             // ... or if it already exists.
             if (ps.peers[0]) {
                 console.log('Existing peer detected:', ps.peers[0].name);
-                setVideoSource(video, startStream(ps.peers[0]));
+                setVideoSource(video, startStream(ps.peers[0], profile));
             }
             else {
                 video.style.background = '#202020';
