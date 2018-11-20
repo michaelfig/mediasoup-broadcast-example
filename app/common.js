@@ -22,6 +22,11 @@ function setVideoSource(video, streamOrUrl) {
         stream = undefined;
     }
 
+    var res = document.querySelector('#res');
+    if (res) {
+        res.innerHTML = '?x?';
+    }
+
     if (onActiveTimeout) {
         clearTimeout(onActiveTimeout);
         onActiveTimeout = undefined;
@@ -60,14 +65,6 @@ function setVideoSource(video, streamOrUrl) {
         stream = streamOrUrl;
         whenStreamIsActive(function getStream() { return stream }, setSrc);
         function setSrc() {
-            var res = document.querySelector('#res');
-            if (res) {
-                res.innerHTML = '?x?';
-                video.oncanplay = function canPlay() {
-                    res.innerHTML = video.videoWidth + 'x' + video.videoHeight;
-                };
-            }
-
             console.log('adding active video stream');
             video.style.background = 'black';
             try {
@@ -79,6 +76,12 @@ function setVideoSource(video, streamOrUrl) {
             }
         }
     }
+
+    video.oncanplay = function canPlay() {
+        if (res) {
+            res.innerHTML = video.videoWidth + 'x' + video.videoHeight;
+        }
+    };
 }
 
 
@@ -145,6 +148,9 @@ function pubsubClient(channel, password, isPublisher) {
             wsSend({type: 'MS_SEND', payload: {kind: kind, password: password}, meta: {id: reqid, channel: channel}});
         };
         ws.onclose = function onClose(event) {
+            if (room) {
+                room.leave();
+            }
             if (!connected) {
                 reject(Error('Connection closed'));
             }
@@ -230,4 +236,35 @@ function onEnterPerform(el, cb) {
             cb();
         }
     });
+}
+
+
+function showStats(s) {
+    for (var i = 0; i < s.length; i ++) {
+        var o = s[i];
+        // ivideokBps, oaudiokBps, etc.
+        var stat = document.querySelector('#' + o.type[0] + o.mediaType + 'kBps');
+        if (stat) {
+            // Calculate kB/s.
+            var kBps = Math.round(o.bitrate / 1024 / 8);
+            stat.innerHTML = kBps;
+        }
+    }
+}
+
+
+function clearStats(kind) {
+    for (var i = 0; i < 2; i ++) {
+        var type = 'io'[i];
+        var kinds = ['audio', 'video'];
+        for (var j = 0; j < kinds.length; j ++) {
+            if (kind !== undefined && kind !== kinds[j]) {
+                continue;
+            }
+            var stat = document.querySelector('#' + type + kind + 'kBps');
+            if (stat) {
+                stat.innerHTML = '0';
+            }
+        }
+    }
 }

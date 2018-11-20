@@ -16,7 +16,12 @@ function connectProducer(type, track) {
         console.log('producing', type, track.id);
         var opts = type === 'video' ? {simulcast: true} : {};
         producers[type] = room.createProducer(track, opts);
+        producers[type].on('stats', showStats);
+        producers[type].enableStats(1000);
         producers[type].send(transport);
+        producers[type].on('close', function closeProducer() {
+            clearStats(type);
+        });
     }
 }
 
@@ -108,6 +113,7 @@ function publishClick() {
 }
 
 function stopPublishClick() {
+    clearStats();
     if (ws) {
         ws.close();
         ws = undefined;

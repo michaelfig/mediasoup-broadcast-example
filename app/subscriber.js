@@ -12,12 +12,15 @@ function startStream(peer, profile) {
             return;
         }
         consumer.setPreferredProfile(profile);
+        consumer.on('stats', showStats);
+        consumer.enableStats(1000);
         consumer.receive(transport)
             .then(function receiveTrack(track) {
                 stream.addTrack(track);
                 consumer.on('close', function closeConsumer() {
                     // Remove the old track.
                     console.log('removing the old track', track.id);
+                    clearStats(consumer.kind);
                     stream.removeTrack(track);
                     if (stream.getTracks().length === 0) {
                         // Replace the stream.
@@ -77,6 +80,7 @@ function subscribeClick() {
 }
 
 function stopSubscribeClick() {
+    clearStats();
     setVideoSource(video);
     transport = undefined;
     room = undefined;
