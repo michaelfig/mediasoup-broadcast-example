@@ -60,6 +60,14 @@ function setVideoSource(video, streamOrUrl) {
         stream = streamOrUrl;
         whenStreamIsActive(function getStream() { return stream }, setSrc);
         function setSrc() {
+            var res = document.querySelector('#res');
+            if (res) {
+                res.innerHTML = '?x?';
+                video.oncanplay = function canPlay() {
+                    res.innerHTML = video.videoWidth + 'x' + video.videoHeight;
+                };
+            }
+
             console.log('adding active video stream');
             video.style.background = 'black';
             try {
