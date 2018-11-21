@@ -2,6 +2,28 @@
 var ms = window.mediasoupClient;
 var stream;
 
+var showResolutionInterval;
+function showResolution(video) {
+    if (showResolutionInterval) {
+        clearInterval(showResolutionInterval);
+        showResolutionInterval = undefined;
+    }
+
+    var res = document.querySelector('#res');
+    if (!video || !res) {
+        if (res) {
+            res.innerHTML = '0x0';
+        }
+        return;
+    }
+    
+    function doShowResolution() {
+        res.innerHTML = video.videoWidth + 'x' + video.videoHeight;
+    };
+    doShowResolution();
+    showResolutionInterval = setInterval(doShowResolution, 1000);
+}
+
 var onActiveTimeout;
 function setVideoSource(video, streamOrUrl) {
     if (stream) {
@@ -22,10 +44,8 @@ function setVideoSource(video, streamOrUrl) {
         stream = undefined;
     }
 
-    var res = document.querySelector('#res');
-    if (res) {
-        res.innerHTML = '?x?';
-    }
+    // Cancel the timer.
+    showResolution();
 
     if (onActiveTimeout) {
         clearTimeout(onActiveTimeout);
@@ -78,9 +98,8 @@ function setVideoSource(video, streamOrUrl) {
     }
 
     video.oncanplay = function canPlay() {
-        if (res) {
-            res.innerHTML = video.videoWidth + 'x' + video.videoHeight;
-        }
+        // Prime the pump.
+        showResolution(video);
     };
 }
 
@@ -111,9 +130,22 @@ function pubsubClient(channel, password, isPublisher) {
         ws.onopen = function onOpen() {
             connected = true;
             pending[++reqid] = function onPubsub(payload) {
+                var turnServers = payload.turnServers || [];
+                if (window.navigator && window.navigator.userAgent.match(/\sEdge\//)) {
+                    // On Edge, having any secure turn (turns:...) URLs
+                    // cause an InvalidAccessError, preventing connections.
+                    turnServers = turnServers.map(function modServer(srv) {
+                        var urls = srv.urls.filter(function modUrl(url) {
+                            // Remove the turns: url.
+                            return !url.match(/^turns:/);
+                        });
+                        return Object.assign({}, srv, {urls: urls});
+                    });
+                }
+
                 room = new ms.Room({
                     requestTimeout: 8000,
-                    turnServers: payload.turnServers || [],
+                    turnServers: turnServers,
                 });
 
                 room.on('request', function onRequest(request, callback, errback) {

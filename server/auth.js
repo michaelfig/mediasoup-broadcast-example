@@ -8,28 +8,34 @@ const RECV_PASSWORD = process.env.RECV_PASSWORD || 'NotSecret';
 const TURN_SERVERS = process.env.TURN_SERVERS ? process.env.TURN_SERVERS.split(',') : [];
 const PASSWORD_EXPIRY_SECONDS = 300;
 
-function getPayload(kind) {
-    const turnServers = TURN_SERVERS.map(
-        function addUserPassword(server) {
-            const key = process.env.TURN_AUTH_KEY;
-            if (key) {
-                // Return the TURN REST API credential.
-                const timestamp = Math.floor(Date.now() / 1000) + PASSWORD_EXPIRY_SECONDS;
-                const temporary_username = String(timestamp) + ':msbe';
-                const hmac = crypto.createHmac('sha1', key).update(temporary_username).digest('base64');
-                return {urls: [server],
-                    username: temporary_username,
-                    credential: hmac,
-                    credentialType: 'password',
-                };
-            }
-            else {
-                // No credentials;
-                return {urls: [server]};
-            }
-        });
 
-    return {kind, turnServers};
+function getTurnServers(urls, key) {
+    if (!urls.length) {
+        return [];
+    }
+    if (key) {
+        // Return the TURN REST API credential.
+        const timestamp = Math.floor(Date.now() / 1000) + PASSWORD_EXPIRY_SECONDS;
+        const temporary_username = String(timestamp) + ':msbe';
+        const hmac = crypto.createHmac('sha1', key).update(temporary_username).digest('base64');
+        return [{urls: urls,
+            username: temporary_username,
+            credential: hmac,
+            credentialType: 'password',
+        }];
+    }
+    else {
+        // No credentials;
+        return [{urls: urls}];
+    }
+};
+
+
+function getPayload(kind) {
+    return {
+        kind: kind,
+        turnServers: getTurnServers(TURN_SERVERS, process.env.TURN_AUTH_KEY)
+    };
 }
 
 function authorize(addr, channel, request) {
