@@ -24,7 +24,6 @@ function showResolution(video) {
     showResolutionInterval = setInterval(doShowResolution, 1000);
 }
 
-var onActiveTimeout;
 function setVideoSource(video, streamOrUrl) {
     if (stream) {
         try {
@@ -46,11 +45,6 @@ function setVideoSource(video, streamOrUrl) {
 
     // Cancel the timer.
     showResolution();
-
-    if (onActiveTimeout) {
-        clearTimeout(onActiveTimeout);
-        onActiveTimeout = undefined;
-    }
 
     if (!streamOrUrl) {
         if (video) {
