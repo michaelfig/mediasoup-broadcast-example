@@ -1,5 +1,6 @@
 'use strict';
 var ms = window.mediasoupClient;
+var autoAdjustProfile;
 var stream;
 
 var showResolutionInterval;
@@ -18,7 +19,18 @@ function showResolution(video) {
     }
     
     function doShowResolution() {
-        res.innerHTML = video.videoWidth + 'x' + video.videoHeight;
+        var area = video.videoWidth * video.videoHeight;
+        if (area < 100) {
+            // Workround silly Edge reporting resolution as 6x6 when
+            // it hasn't received anything yet.
+            res.innerHTML = '0x0';
+        }
+        else {
+            res.innerHTML = video.videoWidth + 'x' + video.videoHeight;
+            if (autoAdjustProfile) {
+                autoAdjustProfile(video.videoWidth, video.videoHeight);
+            }
+        }
     };
     doShowResolution();
     showResolutionInterval = setInterval(doShowResolution, 1000);
@@ -112,8 +124,17 @@ function pubsubClient(channel, password, isPublisher) {
         var pending = {};
         var errors = {};
 
-        var wsurl = window.location.href.replace(/^http/, 'ws')
-            .replace(/^(wss?:\/\/.*)\/.*$/, '$1') + '/pubsub';
+        var wsurl;
+        
+        var match = window.location.search.match(/(^\?|&)u=([^&]*)/);
+        if (match) {
+            wsurl = decodeURIComponent(match[2]);
+        }
+        else {
+            wsurl = window.location.href.replace(/^http/, 'ws')
+                .replace(/^(wss?:\/\/.*)\/.*$/, '$1') + '/pubsub';
+        }
+        
         var ws = new WebSocket(wsurl);
         var connected = false;
         var peerName = isPublisher ? 'publisher' : '' + Math.random();
