@@ -93,6 +93,7 @@ function stopSubscribeClick() {
     }
 }
 
+var cHeight, cWidth;
 function makeAutoAdjustProfile(videoConsumer) {
     var declaredProfile;
     function doAutoAdjustProfile(width, height) {
@@ -104,20 +105,25 @@ function makeAutoAdjustProfile(videoConsumer) {
             desiredProfile = document.querySelector('input[name="prof"]:checked').value;
         }
         
-        if (desiredProfile !== 'auto') {
-            if (declaredProfile !== desiredProfile) {
-                // Set the value directly.
-                declaredProfile = desiredProfile;
+        var profiles = ['low', 'medium', 'high'];
+        var initialAutoProfile = profiles[0];
+        if (declaredProfile !== desiredProfile) {
+            // Set the value directly.
+            declaredProfile = desiredProfile;
+            if (desiredProfile === 'auto') {
+                // Start with the initial profile.
+                videoConsumer.setPreferredProfile(initialAutoProfile);
+            }
+            else {
                 videoConsumer.setPreferredProfile(desiredProfile);
             }
+        }
+
+        if (desiredProfile !== 'auto' || !width || !height) {
+            // No auto-adjust.
             return;
         }
 
-        if (!width || !height) {
-            return;
-        }
-
-        var profiles = ['low', 'medium', 'high'];
         var eprof = videoConsumer.effectiveProfile;
         var eindex = profiles.indexOf(eprof);
         if (eindex < 0) {
@@ -130,44 +136,54 @@ function makeAutoAdjustProfile(videoConsumer) {
             pprof = eprof;
             var radios = document.querySelectorAll('input[name="prof"]');
             for (var i = 0; i < radios.length; i ++) {
-                radios[i].checked = radios[i].value === eprof;
+                radios[i].checked = radios[i].value === pprof;
             }
         }
         
         if (pprof !== eprof) {
-            // Not settled yet on our specific profile.
+            // Not settled yet on latest profile change.
             return;
         }
 
-        var dprof;
-        var ratio = Math.min(video.clientWidth / width, video.clientHeight / height);
-        if (ratio <= 0.5) {
-            if (eindex - 1 < 0) {
-                // No way to shrink.
-                return;
+        var ratio = Math.min(cWidth / width, cHeight / height);
+        var dindex = eindex;
+        var factor = 1;
+        if (ratio < 1) {
+            factor /= 2;
+            while (ratio <= factor) {
+                if (dindex <= 0) {
+                    // No way to shrink further.
+                    break;
+                }
+                dindex --;
+                factor /= 2;
             }
-
-            // Do shrink!
-            dprof = profiles[eindex - 1];
         }
         else if (ratio > 1) {
-            if (eindex + 1 > profiles.length) {
-                // No way to grow bigger.
-                return;
+            var factor = 1;
+            while (ratio > factor) {
+                if (dindex >= profiles.length - 1) {
+                    // No way to grow further.
+                    break;
+                }
+                dindex ++;
+                factor *= 2;
             }
-            
-            // Do grow!
-            dprof = profiles[eindex + 1];
         }
 
-        if (dprof && dprof !== pprof) {
+        // Attempt to shrink or grow.
+        var dprof = profiles[dindex];
+        if (dprof !== undefined && dindex !== eindex && dprof !== pprof) {
             videoConsumer.setPreferredProfile(dprof);
-            var radios = document.querySelectorAll('input[name="prof"]');
-            for (var i = 0; i < radios.length; i ++) {
-                radios[i].checked = radios[i].value === dprof;
-            }
         }
     };
+
+    videoConsumer.on('effectiveprofilechange', function onProfileChange(prof) {
+        var radios = document.querySelectorAll('input[name="prof"]');
+        for (var i = 0; i < radios.length; i ++) {
+            radios[i].checked = radios[i].value === prof;
+        }
+    });
     return doAutoAdjustProfile;
 }
 
@@ -178,14 +194,26 @@ function doAdjust() {
     }
 }
 
+function manualDoAdjust() {
+    document.querySelector('input#profAuto').checked = false;
+    doAdjust();
+}
+
+function cacheVideoDimensions() {
+    // Just set the variables to be used by autoAdjustProfile.
+    cWidth = video.clientWidth;
+    cHeight = video.clientHeight;
+}
+
 function subscriberLoad() {
     var subscribe = document.querySelector('button#subscribe');
     var stopSubscribe = document.querySelector('button#stopSubscribe');
     video = document.querySelector('video#subVideo');
-    window.onresize = doAdjust;
+    window.addEventListener('resize', cacheVideoDimensions);
+    cacheVideoDimensions();
     var radios = document.querySelectorAll('input[name="prof"]');
     for (var i = 0; i < radios.length; i ++) {
-        radios[i].onclick = doAdjust;
+        radios[i].onclick = manualDoAdjust;
     }
     document.querySelector('input#profAuto').onclick = doAdjust;
     subscribe.addEventListener('click', subscribeClick);
