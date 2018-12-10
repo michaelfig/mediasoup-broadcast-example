@@ -28,6 +28,8 @@ If you have problems with black screens or choppiness/delays, it is probably due
 
 I deliberately chose Opus and H.264 for the only supported A/V codecs, because that's the only combination that will work for both modern Safari and Edge (Chrome and Firefox are much more tolerant).  There are still some problems with Edge that I'm working with the Mediasoup folks to resolve, but my default settings seem to work well enough.
 
+If you want to experiment with Simulcast (publishing multiple resolutions at a time, so that subscribers can choose between them), currently only Chrome publishers support it for H264, and only then if you specify the `--force-fieldtrials=WebRTC-H264Simulcast/Enabled/` command-line option when you start Chrome for the first time.
+
 Read the following sections to understand more about what you will need to change when you build your own broadcast system.
 
 ## app/
@@ -56,7 +58,7 @@ Note the following environment variables affect the server:
 
 ## Running under Docker
 
-For extra credit, you can run the server under Docker, see [example repository](https://hub.docker.com/r/michaelfig/mediasoup-broadcast-example/).  You will need host networking (`--network host`) to allow the Docker instance to access all the TCP and UDP ports it needs (see above `RTC_ANNOUNCED_IPV4`).  Docker doesn't allow exposing port ranges.
+For extra credit, you can run the server under Docker, see [example repository](https://hub.docker.com/r/michaelfig/mediasoup-broadcast-example/).  You will need host networking (`--network host`, which doesn't work on Windows or MacOS versions of Docker, since they are actually running in a VM) to allow the Docker instance to access all the TCP and UDP ports it needs (see above `RTC_ANNOUNCED_IPV4`).  Docker doesn't allow exposing port ranges.
 
 ## Bonus: Kubernetes
 

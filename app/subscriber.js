@@ -160,7 +160,6 @@ function makeAutoAdjustProfile(videoConsumer) {
             }
         }
         else if (ratio > 1) {
-            var factor = 1;
             while (ratio > factor) {
                 if (dindex >= profiles.length - 1) {
                     // No way to grow further.
