@@ -234,14 +234,8 @@ function publisherLoad() {
     onEnterPerform(pubChannel, publishClick);
     onEnterPerform(pubPassword, publishClick);
 
-    capture.addEventListener('click', function toggleCapture(event) {
-        if (event.target.checked) {
-            captureStreams();
-        }
-        else {
-            stopCaptureStreams();
-        }
-    });
+    capture.addEventListener('click', captureStreams);
+    stopCapture.addEventListener('click', stopCaptureStreams);
     if (capture.checked) {
         captureStreams();
     }
@@ -376,8 +370,8 @@ function getLength(headers) {
     }
     // At least Sony SNC CH110 sends "DataLen: 00938696".
     var match2 = headers.match(/^datalen: *(\d+)$/mi);
-    if (match) {
-        return parseInt(match[1], 10);
+    if (match2) {
+        return parseInt(match2[1], 10);
     }
     return -1;
 }
