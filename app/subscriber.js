@@ -53,8 +53,8 @@ function startStream(peer) {
 function subscribeClick() {
     stopSubscribeClick();
 
-    var channel = document.querySelector('#subChannel').value;
-    var password = document.querySelector('#subPassword').value;
+    var channel = subChannel.value;
+    var password = subPassword.value;
 
     pubsubClient(channel, password, false)
         .then(function havePubsub(ps) {
@@ -194,7 +194,7 @@ function doAdjust() {
 }
 
 function manualDoAdjust() {
-    document.querySelector('input#profAuto').checked = false;
+    profAuto.checked = false;
     doAdjust();
 }
 
@@ -205,23 +205,30 @@ function cacheVideoDimensions() {
 }
 
 function subscriberLoad() {
-    var subscribe = document.querySelector('input#subscribe');
-    video = document.querySelector('video#subVideo');
+    video = subVideo;
     window.addEventListener('resize', cacheVideoDimensions);
     cacheVideoDimensions();
     var radios = document.querySelectorAll('input[name="prof"]');
     for (var i = 0; i < radios.length; i ++) {
         radios[i].onclick = manualDoAdjust;
     }
-    document.querySelector('input#profAuto').onclick = doAdjust;
-    subscribe.addEventListener('click', function subscribeToggle(event) {
-        if (event.target.checked) {
+    profAuto.onclick = doAdjust;
+    function subscribeToggle() {
+        if (subscribe.checked) {
             subscribeClick();
         }
         else {
             stopSubscribeClick();
         }
-    });
-    onEnterPerform(document.querySelector('#subChannel'), subscribeClick);
-    onEnterPerform(document.querySelector('#subPassword'), subscribeClick);
+    }
+    subscribe.addEventListener('click', subscribeToggle);
+    if (subscribe.checked) {
+        subscribeClick();
+    }
+    function subscribeCheck() {
+        subscribe.checked = true;
+        subscribeToggle();
+    }
+    onEnterPerform(subChannel, subscribeCheck);
+    onEnterPerform(subPassword, subscribeCheck);
 }

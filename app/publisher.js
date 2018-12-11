@@ -7,14 +7,20 @@ var video;
 var producers = {};
 var sendStream;
 
+var lastProduced = {};
 function connectProducer(type, track) {
     if (producers[type]) {
+        if (room && track && lastProduced[type] === track.id) {
+            return;
+        }
         console.log('stop producing', type, producers[type].track.id);
         producers[type].close();
         delete producers[type];
+        delete lastProduced[type];
     }
     if (room && track) {
         console.log('producing', type, track.id);
+        lastProduced[type] = track.id;
         var opts = type === 'video' ? {simulcast: true} : {};
         producers[type] = room.createProducer(track, opts);
         producers[type].on('stats', showStats);
@@ -80,6 +86,7 @@ function hookup(capturing, newStream, newVideoStream) {
 }
 
 function stopCaptureStreams() {
+    setVideoSource(video);
     for (var src in capturing) {
         if (capturing[src].cancel) {
             capturing[src].cancel();
@@ -222,17 +229,22 @@ function publisherLoad() {
         bufVideo.volume = 0;
     }
 
-    publish.addEventListener('click', function togglePublish(event) {
-        if (event.target.checked) {
+    function togglePublish(event) {
+        if (publish.checked) {
             publishClick();
         }
         else {
             stopPublishClick();
         }
-    });
+    }
+    publish.addEventListener('click', togglePublish);
 
-    onEnterPerform(pubChannel, publishClick);
-    onEnterPerform(pubPassword, publishClick);
+    function publishCheck() {
+        publish.checked = true;
+        togglePublish();
+    }
+    onEnterPerform(pubChannel, publishCheck);
+    onEnterPerform(pubPassword, publishCheck);
 
     capture.addEventListener('click', captureStreams);
     stopCapture.addEventListener('click', stopCaptureStreams);
@@ -273,9 +285,10 @@ function mjpegFetch(src, newVideoStream) {
         fetchFlags.signal = controller.signal;
     }
 
+    var mjpegImage = new Image();
     capturing.mjpeg.cancel = function doCancelFetch() {
         stopCapture = true;
-        mjpegImage.src = '';
+        mjpegImage = null;
         ctx.clearRect(0, 0, mjpegCanvas.width, mjpegCanvas.height);
         mjpegCanvas.height = 0;
         mjpegCanvas.width = 0;

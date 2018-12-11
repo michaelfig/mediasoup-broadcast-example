@@ -35,7 +35,7 @@
                 <tr>
                     <th><label for="mjpegUrl">MJPEG URL:</label></th>
                     <td>
-                        <input type="text" id="mjpegUrl" value="http://localhost:9000/mjpeg"/>
+                        <input type="text" id="mjpegUrl" value="http://127.0.0.1:9000/mjpeg"/>
                     </td>
                 </tr>
                 <tr>
@@ -58,7 +58,6 @@
             </div>
             <video id="bufVideo" autoplay playsinline></video>
             <canvas id="mjpegCanvas"></canvas>
-            <image id="mjpegImage"></image>
         </div>
         <script type="text/javascript" src="mediasoup-client.js"></script> 
         <script type="text/javascript" src="publisher.js"></script>
