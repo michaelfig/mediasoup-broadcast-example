@@ -37,7 +37,7 @@ function showResolution(video) {
 }
 
 function setVideoSource(video, streamOrUrl) {
-    if (stream) {
+    if (stream && !streamOrUrl) {
         try {
             if (stream.stop) {
                 stream.stop();
@@ -71,35 +71,18 @@ function setVideoSource(video, streamOrUrl) {
         return;
     }
 
-    if (typeof streamOrUrl === 'string') {
-        // Just a regular URL.
+    // We have an actual MediaStream.
+    stream = streamOrUrl;
+    whenStreamIsActive(function getStream() { return stream }, setSrc);
+    function setSrc() {
+        console.log('adding active stream');
         video.style.background = 'black';
-        video.src = streamOrUrl;
-        if (video.captureStream) {
-            stream = video.captureStream();
+        try {
+            video.srcObject = stream;
         }
-        else if (video.mozCaptureStream) {
-            stream = video.mozCaptureStream();
-        }
-        else {
-            alert('Cannot capture video stream!');
-            return;
-        }
-    }
-    else {
-        // We have an actual MediaStream.
-        stream = streamOrUrl;
-        whenStreamIsActive(function getStream() { return stream }, setSrc);
-        function setSrc() {
-            console.log('adding active video stream');
-            video.style.background = 'black';
-            try {
-                video.srcObject = stream;
-            }
-            catch (e) {
-                var url = (window.URL || window.webkitURL);
-                video.src = url ? url.createObjectURL(stream) : stream;
-            }
+        catch (e) {
+            var url = (window.URL || window.webkitURL);
+            video.src = url ? url.createObjectURL(stream) : stream;
         }
     }
 

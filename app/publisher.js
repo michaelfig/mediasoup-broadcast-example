@@ -4,7 +4,9 @@ var room;
 var stream;
 var transport;
 var video;
+var bufVideo;
 var producers = {};
+var sendStream;
 
 function connectProducer(type, track) {
     if (producers[type]) {
@@ -25,70 +27,150 @@ function connectProducer(type, track) {
     }
 }
 
-function maybeStream(kind) {
+function maybeStream(stream) {
     // Actually begin the stream if we can.
     if (!stream) {
-        console.log('no', kind, 'stream yet');
+        console.log('no sending stream yet');
         return;
     }
+    sendStream = stream;
 
-    console.log('streaming', kind);
+    console.log('streaming');
     function doConnects() {
         if (!stream) {
             return;
         }
-        connectProducer('audio', stream.getAudioTracks()[0]);
-        connectProducer('video', stream.getVideoTracks()[0]);
+        var atrack = stream.getAudioTracks();
+        var vtrack = stream.getVideoTracks();
+        function notEnded(track) {
+            if (track.readyState === 'ended' && stream.removeTrack) {
+                stream.removeTrack(track);
+                return false;
+            }
+            return true;
+        }
+        connectProducer('audio', atrack.find(notEnded));
+        connectProducer('video', vtrack.find(notEnded));
     }
     whenStreamIsActive(function getStream() { return stream }, doConnects);
 }
 
-
-function captureClick() {
-    var srcs = document.querySelectorAll('input[name="src"]');
-    var src;
-    for (var i = 0; i < srcs.length; i ++) {
-        if (srcs[i].checked) {
-            src = srcs[i];
+var capturing = {};
+function hookup(capturing, newStream, newVideoStream) {
+    var vtrack = capturing.stream.getVideoTracks();
+    if (capturing.video && vtrack.length > 0) {
+        for (var track of newStream.getVideoTracks()) {
+            track.stop();
+        }
+        newStream.addTrack(vtrack[0]);
+        if (newVideoStream) {
+            for (var track of newVideoStream.getVideoTracks()) {
+                track.stop();
+            }
+            newVideoStream.addTrack(vtrack[0]);
         }
     }
-
-    if (!src) {
-        alert('You must select a capture source');
-        return;
+    var atrack = capturing.stream.getAudioTracks();
+    if (capturing.audio && atrack.length > 0) {
+        for (var track of newStream.getAudioTracks()) {
+            track.stop();
+        }
+        newStream.addTrack(atrack[0]);
     }
+    maybeStream(newStream);
+}
 
-    if (src.id.match(/^cam/i)) {
-        stopCaptureClick();
-        navigator.mediaDevices.getUserMedia({
-            audio: true,
-            video: true,
-        })
+function stopCaptureStreams() {
+    for (var src in capturing) {
+        var stream = capturing[src].stream;
+        for (var track of stream.getAudioTracks()) {
+            track.stop();
+        }
+        for (var track of stream.getVideoTracks()) {
+            track.stop();
+        }
+    }
+    capturing = {};
+    connectProducer('audio');
+    connectProducer('video');
+}
+
+function captureStreams() {
+    stopCaptureStreams();
+    var aud = document.querySelector('#aud');
+    var vid = document.querySelector('#vid');
+
+    sendStream = sendStream || new MediaStream();
+    var newVideoStream = new MediaStream();
+
+    // Reflect our new streams in the source.
+    setVideoSource(video, newVideoStream);
+
+    var gumAudio = aud.value === 'mic';
+    var gumVideo = ['user', 'env'].find(function (val) { return val === vid.value });
+    if (gumAudio || gumVideo) {
+        var constraints = {};
+        if (gumAudio) {
+            constraints.audio = true;
+        }
+        if (gumVideo) {
+            constraints.video = {facingMode: gumVideo === 'env' ? 'environment' : gumVideo};
+        }
+        
+        navigator.mediaDevices.getUserMedia(constraints)
         .then(function successCallback(stream) {
-                // Send the output of the media to the video.
-                setVideoSource(video, stream);
-                maybeStream('cam');
-            })
+            capturing.gum = {
+                stream: stream,
+                audio: gumAudio,
+                video: gumVideo,
+            };
+            hookup(capturing.gum, sendStream, newVideoStream);
+        })
         .catch(function errorCallback(error) {
             alert('Error getting media (error code ' + error.code + ')');
         });
     }
-    else if (src.id.match(/^url/i)) {
-        stopCaptureClick();
-        var url = document.querySelector('input#url').value;
-        setVideoSource(video, url);
-        maybeStream(url);
+
+    var newSrc = document.querySelector('#tagUrl').value;
+    var tagAudio = aud.value === 'tag' ? newSrc : false;
+    var tagVideo = vid.value === 'tag' ? newSrc : false;
+
+    if (tagAudio || tagVideo) {
+        function captureTag() {
+            bufVideo.src = newSrc;
+            capturing.tag = {
+                video: tagVideo,
+                audio: tagAudio,
+                restart: captureTag
+            };
+            if (bufVideo.captureStream) {
+                capturing.tag.stream = bufVideo.captureStream();
+            }
+            else if (bufVideo.mozCaptureStream) {
+                capturing.tag.stream = bufVideo.mozCaptureStream();
+            }
+            else {
+                alert('Cannot capture video stream!');
+                delete capturing.tag;
+            }
+            if (capturing.tag) {
+                function hookupTag() {
+                    hookup(capturing.tag, sendStream, newVideoStream);
+                }
+                whenStreamIsActive(function getTagStream() { return capturing.tag.stream }, hookupTag);
+            }
+        };
+        captureTag();
     }
     else {
-        alert('Unrecognized capture source ' + src.id);
-        return;
+        bufVideo.src = null;
     }
-}
 
-function stopCaptureClick() {
-    setVideoSource(video);
-    connectProducer('audio');
-    connectProducer('video');
+    var newUrl = document.querySelector('#mjpegUrl').value;
+    var mjpegVideo = vid.value === 'mjpeg' ? newUrl : false;
+    if (mjpegVideo) {
+        alert('would mjpeg stream ' + newUrl);
+    }
 }
 
 function publishClick() {
@@ -105,7 +187,7 @@ function publishClick() {
 
             // Now actually stream the selected video to the output.
             transport = room.createTransport('send');
-            maybeStream('cam');
+            maybeStream(sendStream);
         })
         .catch(function onError(err) {
             alert('Cannot publish to channel: ' + err);
@@ -121,11 +203,16 @@ function stopPublishClick() {
 }
 
 function publisherLoad() {
-    var capture = document.querySelector('button#capture');
-    var stopCapture = document.querySelector('button#stopCapture');
-    var publish = document.querySelector('button#publish');
-    var stopPublish = document.querySelector('button#stopPublish');
+    var publish = document.querySelector('input#publish');
     video = document.querySelector('video#pubVideo');
+    bufVideo = document.querySelector('video#bufVideo');
+
+    bufVideo.onended = function loopStreams() {
+        if (capturing.tag && capturing.tag.restart) {
+            bufVideo.src = null;
+            capturing.tag.restart();
+        }
+    };
 
     // Mute everywhere except Firefox, which mutes when we start streaming
     // and won't stream audio if we mute it manually.
@@ -133,11 +220,38 @@ function publisherLoad() {
         video.volume = 0;
     }
 
-    capture.addEventListener('click', captureClick);
-    stopCapture.addEventListener('click', stopCaptureClick);
-    publish.addEventListener('click', publishClick);
-    stopPublish.addEventListener('click', stopPublishClick);
+    publish.addEventListener('click', function togglePublish(event) {
+        if (event.target.checked) {
+            publishClick();
+        }
+        else {
+            stopPublishClick();
+        }
+    });
 
     onEnterPerform(document.querySelector('#pubChannel'), publishClick);
     onEnterPerform(document.querySelector('#pubPassword'), publishClick);
+
+    var capture = document.querySelector('#capture');
+    capture.addEventListener('click', function toggleCapture(event) {
+        if (event.target.checked) {
+            captureStreams();
+        }
+        else {
+            stopCaptureStreams();
+        }
+    });
+    if (document.querySelector('#capture').checked) {
+        captureStreams();
+    }
+    if (document.querySelector('#publish').checked) {
+        publishClick();
+    }
+}
+
+function onOptionClick(el, cb) {
+    var opts = el.querySelectorAll('option');
+    for (var i = 0; i < opts.length; i ++) {
+        opts[i].addEventListener('click', cb);
+    }
 }

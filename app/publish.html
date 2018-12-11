@@ -9,41 +9,53 @@
     <body onload="publisherLoad()">
         <div class="container">
             <table class="params">
-                <tr>
-                    <th>Source:</th>
-                    <td><input type="radio" name="src" value="cam" id="camSrc" checked="checked"/>
-                        <label for="camSrc">Camera/Microphone</label></td>
+                <tr><th><label for="vid">Video:</label></th>
+                    <td><select name="vid" id="vid">
+                        <option value="" selected="selected">--None--</option>
+                        <option value="env">Env Camera</option>
+                        <option value="user">User Camera</option>
+                        <option value="mjpeg">MJPEG URL</option>
+                        <option value="tag">Video SRC</option>
+                        </select>
+                        <span id="ivideokBps">0</span>kB/s, <span id="res">0x0</span>
+                    </td>
+                </tr>
+                <tr><th><label for="aud">Audio:</label></th>
+                    <td><select name="aud" id="aud">
+                        <option value="" selected="selected">--None--</option>
+                        <option value="mic">Microphone</option>
+                        <option value="tag">Video SRC</option>
+                    </select>
+                    <span id="iaudiokBps">0</span>kB/s</td>
                 </tr>
                 <tr>
-                    <td></td>
-                    <td><input type="radio" name="src" value="url" id="urlSrc" />
-                        <label for="urlSrc">URL:</label>&nbsp;<input type="text" value="videos/big_buck_bunny.mp4" name="url" id="url" /></td>
+                    <th><label for="tagUrl">Video SRC:</label></th>
+                    <td><input type="text" value="videos/big_buck_bunny.mp4" id="tagUrl" /></td>
                 </tr>
                 <tr>
-                    <td></td>
-                    <td><button id="capture">Capture</button>
-                        <button id="stopCapture">Stop Capturing</button></td> 
-                </tr>
-                <tr>
-                    <th>Channel:</th>
-                    <td><input type="text" value="test" id="pubChannel"/>
-                        <span id="res">0x0</span></td>
-                </tr>
-                <tr>
-                    <th>Password:</th>
-                    <td><input type="password" value="ChangeMe" id="pubPassword"/>
-                        v=<span id="ivideokBps">0</span>kB/s, a=<span id="iaudiokBps">0</span>kB/s
+                    <th><label for="mjpegUrl">MJPEG URL:</label></th>
+                    <td>
+                        <input type="text" id="mjpegUrl" value="http://localhost:9000/mjpeg"/>
                     </td>
                 </tr>
                 <tr>
+                    <th>Channel:</th>
+                    <td><input type="text" value="test" id="pubChannel"/></td>
+                </tr>
+                <tr>
+                    <th>Password:</th>
+                    <td><input type="password" value="ChangeMe" id="pubPassword"/></td>
+                </tr>
+                <tr>
                     <td></td>
-                    <td><button id="publish">Publish</button>
-                        <button id="stopPublish">Stop Publishing</button></td>
+                    <td><label for="capture"><input type="checkbox" id="capture"/>Capture</label>
+                        <label for="publish"><input type="checkbox" id="publish"/>Publish</label></td>
                 </tr>
             </table>
             <div class="videoContainer">
-                <video id="pubVideo" autoplay playsinline loop></video>
+                <video id="pubVideo" autoplay playsinline></video>
             </div>
+            <video id="bufVideo" autoplay playsinline></video>
         </div>
         <script type="text/javascript" src="mediasoup-client.js"></script> 
         <script type="text/javascript" src="publisher.js"></script>

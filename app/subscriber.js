@@ -205,8 +205,7 @@ function cacheVideoDimensions() {
 }
 
 function subscriberLoad() {
-    var subscribe = document.querySelector('button#subscribe');
-    var stopSubscribe = document.querySelector('button#stopSubscribe');
+    var subscribe = document.querySelector('input#subscribe');
     video = document.querySelector('video#subVideo');
     window.addEventListener('resize', cacheVideoDimensions);
     cacheVideoDimensions();
@@ -215,8 +214,14 @@ function subscriberLoad() {
         radios[i].onclick = manualDoAdjust;
     }
     document.querySelector('input#profAuto').onclick = doAdjust;
-    subscribe.addEventListener('click', subscribeClick);
-    stopSubscribe.addEventListener('click', stopSubscribeClick);
+    subscribe.addEventListener('click', function subscribeToggle(event) {
+        if (event.target.checked) {
+            subscribeClick();
+        }
+        else {
+            stopSubscribeClick();
+        }
+    });
     onEnterPerform(document.querySelector('#subChannel'), subscribeClick);
     onEnterPerform(document.querySelector('#subPassword'), subscribeClick);
 }
