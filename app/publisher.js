@@ -242,6 +242,14 @@ function publisherLoad() {
     if (publish.checked) {
         publishClick();
     }
+
+    mjpegUrl.addEventListener('click', function selectMjpeg() {
+        vid.value = 'mjpeg';
+    });
+    tagUrl.addEventListener('click', function selectTag() {
+        vid.value = 'tag';
+        aud.value = 'tag';
+    });
 }
 
 function onOptionClick(el, cb) {
