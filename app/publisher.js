@@ -170,7 +170,8 @@ function captureStreams() {
         captureTag();
     }
     else {
-        bufVideo.src = null;
+        // Stop the bufVideo from playing.
+        bufVideo.src = '';
     }
 
     var newUrl = mjpegUrl.value;
