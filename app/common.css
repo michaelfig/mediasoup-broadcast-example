@@ -41,6 +41,6 @@ video#subVideo, video#pubVideo {
     height: 100%;
 }
 
-video#bufVideo {
+video#bufVideo, #mjpegCanvas, #mjpegImage {
     display: none;
 }

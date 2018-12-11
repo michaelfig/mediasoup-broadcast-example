@@ -4,7 +4,6 @@ var room;
 var stream;
 var transport;
 var video;
-var bufVideo;
 var producers = {};
 var sendStream;
 
@@ -82,6 +81,9 @@ function hookup(capturing, newStream, newVideoStream) {
 
 function stopCaptureStreams() {
     for (var src in capturing) {
+        if (capturing[src].cancel) {
+            capturing[src].cancel();
+        }
         var stream = capturing[src].stream;
         for (var track of stream.getAudioTracks()) {
             track.stop();
@@ -97,8 +99,6 @@ function stopCaptureStreams() {
 
 function captureStreams() {
     stopCaptureStreams();
-    var aud = document.querySelector('#aud');
-    var vid = document.querySelector('#vid');
 
     sendStream = sendStream || new MediaStream();
     var newVideoStream = new MediaStream();
@@ -131,7 +131,7 @@ function captureStreams() {
         });
     }
 
-    var newSrc = document.querySelector('#tagUrl').value;
+    var newSrc = tagUrl.value;
     var tagAudio = aud.value === 'tag' ? newSrc : false;
     var tagVideo = vid.value === 'tag' ? newSrc : false;
 
@@ -166,18 +166,22 @@ function captureStreams() {
         bufVideo.src = null;
     }
 
-    var newUrl = document.querySelector('#mjpegUrl').value;
+    var newUrl = mjpegUrl.value;
     var mjpegVideo = vid.value === 'mjpeg' ? newUrl : false;
     if (mjpegVideo) {
-        alert('would mjpeg stream ' + newUrl);
+        capturing.mjpeg = {
+            video: mjpegVideo,
+            audio: false,
+        };
+        mjpegFetch(mjpegVideo, newVideoStream);
     }
 }
 
 function publishClick() {
     stopPublishClick();
 
-    var channel = document.querySelector('#pubChannel').value;
-    var password = document.querySelector('#pubPassword').value;
+    var channel = pubChannel.value;
+    var password = pubPassword.value;
 
     pubsubClient(channel, password, true)
         .then(function havePubsub(ps) {
@@ -203,9 +207,7 @@ function stopPublishClick() {
 }
 
 function publisherLoad() {
-    var publish = document.querySelector('input#publish');
     video = document.querySelector('video#pubVideo');
-    bufVideo = document.querySelector('video#bufVideo');
 
     bufVideo.onended = function loopStreams() {
         if (capturing.tag && capturing.tag.restart) {
@@ -216,8 +218,8 @@ function publisherLoad() {
 
     // Mute everywhere except Firefox, which mutes when we start streaming
     // and won't stream audio if we mute it manually.
-    if (!video.mozCaptureStream) {
-        video.volume = 0;
+    if (!bufVideo.mozCaptureStream) {
+        bufVideo.volume = 0;
     }
 
     publish.addEventListener('click', function togglePublish(event) {
@@ -229,10 +231,9 @@ function publisherLoad() {
         }
     });
 
-    onEnterPerform(document.querySelector('#pubChannel'), publishClick);
-    onEnterPerform(document.querySelector('#pubPassword'), publishClick);
+    onEnterPerform(pubChannel, publishClick);
+    onEnterPerform(pubPassword, publishClick);
 
-    var capture = document.querySelector('#capture');
     capture.addEventListener('click', function toggleCapture(event) {
         if (event.target.checked) {
             captureStreams();
@@ -241,10 +242,10 @@ function publisherLoad() {
             stopCaptureStreams();
         }
     });
-    if (document.querySelector('#capture').checked) {
+    if (capture.checked) {
         captureStreams();
     }
-    if (document.querySelector('#publish').checked) {
+    if (publish.checked) {
         publishClick();
     }
 }
@@ -254,4 +255,129 @@ function onOptionClick(el, cb) {
     for (var i = 0; i < opts.length; i ++) {
         opts[i].addEventListener('click', cb);
     }
+}
+
+var TYPE_JPEG = 'image/jpeg';
+
+function mjpegFetch(src, newVideoStream) {
+    // This function adapted from: https://github.com/aruntj/mjpeg-readable-stream/blob/master/index.html
+    // MIT License.
+    var ctx = mjpegCanvas.getContext('2d');
+    var stopCapture = false;
+    var controller = window.AbortController && new window.AbortController();
+
+    var fetchFlags = {};
+    if (controller) {
+        fetchFlags.signal = controller.signal;
+    }
+
+    capturing.mjpeg.cancel = function doCancelFetch() {
+        stopCapture = true;
+        mjpegImage.src = '';
+        ctx.clearRect(0, 0, mjpegCanvas.width, mjpegCanvas.height);
+        mjpegCanvas.height = 0;
+        mjpegCanvas.width = 0;
+        if (controller) {
+            controller.abort();
+        }
+    };
+
+    fetch(src, fetchFlags)
+    .then(function fetchComplete(response) {
+        if (stopCapture) {
+            return;
+        }
+        if (!response.ok) {
+            var reason = response.status+' '+response.statusText;
+            alert('Cannot fetch ' + src + ': ' + reason);
+            throw Error(reason);
+        }
+        if (!response.body) {
+            alert('ReadableStream not supported.\n' +
+              'If you are using Firefox, go to about:config and set:\n' +
+              'dom.streams.enabled and javascript.options.streams');
+            throw Error('ReadableStream not yet supported in this browser.');
+        }
+        
+        try {
+            capturing.mjpeg.stream = mjpegCanvas.captureStream();
+            function hookupTag() {
+                hookup(capturing.mjpeg, sendStream, newVideoStream);
+            }
+            whenStreamIsActive(function getMjpegStream() { return capturing.mjpeg.stream }, hookupTag);
+        }
+        catch (e) {
+            alert('Cannot mjpegCanvas.captureStream: ' + e);
+            return;
+        }
+
+        var reader = response.body.getReader();
+        var headers = '';
+        var contentLength = -1;
+        var imageBuffer = null;
+        var bytesRead = 0;
+
+        function pushRead() {
+            reader.read().then(function readChunk(attrs) {
+                if (attrs.done || stopCapture) {
+                    return;
+                }
+
+                var value = attrs.value;
+                for (let index =0; index < value.length; index++) {
+                    
+                    // we've found start of the frame. Everything we've read till now is the header.
+                    if (value[index] === 0xff && value[index+1] === 0xd8) {
+                        // console.log('header found : ' + newHeader);
+                        contentLength = getLength(headers);
+                        // console.log("Content Length : " + newContentLength);
+                        imageBuffer = new Uint8Array(new ArrayBuffer(contentLength));
+                    }
+                    // we're still reading the header.
+                    if (contentLength <= 0) {
+                        headers += String.fromCharCode(value[index]);
+                    }
+                    // we're now reading the jpeg. 
+                    else if (bytesRead < contentLength){
+                        imageBuffer[bytesRead++] = value[index];
+                    }
+                    // we're done reading the jpeg. Time to render it. 
+                    else {
+                        // console.log("jpeg read with bytes : " + bytesRead);
+                        mjpegImage.src = URL.createObjectURL(new Blob([imageBuffer], {type: TYPE_JPEG}));
+                        mjpegImage.onload = function imgLoad() {
+                            mjpegImage.onload = null;
+                            mjpegCanvas.height = mjpegImage.naturalHeight;
+                            mjpegCanvas.width = mjpegImage.naturalWidth;
+                            ctx.drawImage(mjpegImage, 0, 0);
+                        };
+                        contentLength = 0;
+                        bytesRead = 0;
+                        headers = '';
+                    }
+                }
+                pushRead();
+            }).catch(function onError(error) {
+                console.error(error);
+            })
+        }
+                
+        pushRead();
+    }).catch(function onError(error) {
+        console.error(error);
+    });
+}
+
+function getLength(headers) {
+    // Most MJPEG streams send "Content-Length: 9389986".
+    var match = headers.match(/^content-length: *(\d+)$/mi);
+    if (match) {
+        return parseInt(match[1], 10);
+    }
+    // At least Sony SNC CH110 sends "DataLen: 00938696".
+    var match2 = headers.match(/^datalen: *(\d+)$/mi);
+    if (match) {
+        return parseInt(match[1], 10);
+    }
+    return -1;
 }
