@@ -28,13 +28,15 @@ If you have problems with black screens or choppiness/delays, it is probably due
 
 I deliberately chose Opus and H.264 for the only supported A/V codecs, because that's the only combination that will work for both modern Safari and Edge (Chrome and Firefox are much more tolerant).  There are still some problems with Edge that I'm working with the Mediasoup folks to resolve, but my default settings seem to work well enough.
 
-## Simulcast
+### Simulcast
 
 If you want to experiment with Simulcast (publishing multiple resolutions at a time, so that subscribers can choose between them), currently only Chrome publishers support it for H264, and only then if you specify the `--force-fieldtrials=WebRTC-H264Simulcast/Enabled/` command-line option when you start Chrome for the first time.
 
-## MJPEG
+### MJPEG
 
-If you have access to an MJPEG IP camera, you can specify it in the publisher.  Note that most cameras don't set the CORS headers to allow cross-origin access, so you may have to use a localhost proxy or browser extension such as [Cacao](https://github.com/michaelfig/cacao) in order to allow access via the browser.
+If you have access to an MJPEG IP camera, you can specify it in the publisher.  Note that most cameras don't set the CORS headers to allow cross-origin access, and their content can't even be accessed from HTTPS pages since they are not on localhost, so you may have to use a localhost proxy or browser extension such as [Cacao](https://github.com/michaelfig/cacao) in order to allow access.
+
+# Architecture
 
 Read the following sections to understand more about what you will need to change when you build your own broadcast system.
 
@@ -80,7 +82,7 @@ Refer to `build.sh` and `charts/example.yaml` for rudimentary hints on how to in
 
 Thanks a lot to Iñaki Baz Castillo for the wonderful Mediasoup software, and quick and responsive support of it.
 
-I, Michael FIG, implemented this example within a week, from scratch, using only the Mediasoup and Mediasoup Client API documentation and publically-accessible Web API documentation as references.  I hope this helps you jumpstart your own projects!
+I, Michael FIG, implemented the first working version of this example within a week, from scratch, using only the Mediasoup and Mediasoup Client API documentation and publically-accessible Web API documentation as references.  I hope this helps you jumpstart your own projects!
 
 Have fun!
 
