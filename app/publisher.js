@@ -92,12 +92,14 @@ function stopCaptureStreams() {
             capturing[src].cancel();
         }
         var stream = capturing[src].stream;
+        if (stream) {
         for (var track of stream.getAudioTracks()) {
             track.stop();
         }
         for (var track of stream.getVideoTracks()) {
             track.stop();
         }
+    }
     }
     capturing = {};
     connectProducer('audio');
@@ -352,6 +354,7 @@ function mjpegFetch(src, newVideoStream) {
                     // we're still reading the header.
                     if (contentLength <= 0) {
                         headers += String.fromCharCode(value[index]);
+                        // console.log('headers sofar : ' + headers);
                     }
                     // we're now reading the jpeg. 
                     else if (bytesRead < contentLength){
@@ -361,26 +364,27 @@ function mjpegFetch(src, newVideoStream) {
                     else {
                         // console.log("jpeg read with bytes : " + bytesRead);
                         mjpegImage.src = URL.createObjectURL(new Blob([imageBuffer], {type: TYPE_JPEG}));
+                        contentLength = 0;
+                        bytesRead = 0;
+                        headers = '';
+                        imageBuffer = null;
                         mjpegImage.onload = function imgLoad() {
                             mjpegImage.onload = null;
                             mjpegCanvas.height = mjpegImage.naturalHeight;
                             mjpegCanvas.width = mjpegImage.naturalWidth;
                             ctx.drawImage(mjpegImage, 0, 0);
                         };
-                        contentLength = 0;
-                        bytesRead = 0;
-                        headers = '';
                     }
                 }
                 pushRead();
             }).catch(function onError(error) {
-                console.error(error);
+                alert('Error reading MJPEG stream: ' + error);
             })
         }
                 
         pushRead();
     }).catch(function onError(error) {
-        console.error(error);
+        alert('Error fetching MJPEG stream: ' + error);
     });
 }
 
@@ -388,12 +392,12 @@ function getLength(headers) {
     // Most MJPEG streams send "Content-Length: 9389986".
     var match = headers.match(/^content-length: *(\d+)$/mi);
     if (match) {
-        return parseInt(match[1], 10);
+        return Number(match[1]);
     }
     // At least Sony SNC CH110 sends "DataLen: 00938696".
     var match2 = headers.match(/^datalen: *(\d+)$/mi);
     if (match2) {
-        return parseInt(match2[1], 10);
+        return Number(match2[1]);
     }
     return -1;
 }
