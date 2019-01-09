@@ -378,12 +378,14 @@ function mjpegFetch(src, newVideoStream) {
                 }
                 pushRead();
             }).catch(function onError(error) {
+                console.error('Error reading MJPEG stream:', error);
                 alert('Error reading MJPEG stream: ' + error);
             })
         }
                 
         pushRead();
     }).catch(function onError(error) {
+        console.error('Error fetching MJPEG stream:', error);
         alert('Error fetching MJPEG stream: ' + error);
     });
 }
