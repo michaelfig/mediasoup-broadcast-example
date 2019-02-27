@@ -23,12 +23,13 @@
                 </tr>
                 <tr>
                     <td></td>
-                    <td><label for="subscribe"><input type="checkbox" id="subscribe"/>Subscribe</label></td>
+                    <td><label for="subscribe"><input type="checkbox" id="subscribe"/>Subscribe</label>
+                        <label for="muted"><input type="checkbox" id="muted" checked>Muted</label></label></td>
                     <td><label for="profLow"><input type="radio" name="prof" id="profLow" value="low" />Low</label></td>
                 </tr>
             </table>
             <div class="videoContainer">
-                <video id="subVideo" autoplay playsinline></video>
+                <video id="subVideo" autoplay playsinline muted></video>
             </div>
         </div>
         <script type="text/javascript" src="mediasoup-client.js"></script>

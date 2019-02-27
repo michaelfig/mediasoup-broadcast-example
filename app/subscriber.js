@@ -231,4 +231,18 @@ function subscriberLoad() {
     }
     onEnterPerform(subChannel, subscribeCheck);
     onEnterPerform(subPassword, subscribeCheck);
+
+    function mutedToggle() {
+        video.muted = muted.checked;
+    }
+    muted.addEventListener('click', mutedToggle);
+
+    if (window.location.search.match(/(\?|&)sub=1(&|$)/)) {
+        // Autosubscribe.
+        subscribeCheck();
+    }
+    else {
+        // Unmute in preparation for subscribe toggle.
+        muted.checked = video.muted = false;
+    }
 }
