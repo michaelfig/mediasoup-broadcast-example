@@ -13,6 +13,10 @@ spec:
     matchLabels:
       app: {{ template "mediasoup-broadcast-example.name" . }}
       release: {{ .Release.Name }}
+{{- if .Values.service.hostNetworkIP }}
+  strategy:
+    type: Recreate
+{{- end }}
   template:
     metadata:
       labels:

@@ -13,6 +13,10 @@ spec:
     matchLabels:
       app: {{ template "coturns.name" . }}
       release: {{ .Release.Name }}
+{{- if .Values.service.hostNetworkIP }}
+  strategy:
+    type: Recreate
+{{- end }}
   template:
     metadata:
       labels:
