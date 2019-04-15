@@ -11,6 +11,8 @@ image:
   pullPolicy: IfNotPresent
 
 service:
+  annotations: {}
+    # external-dns.alpha.kubernetes.io/hostname: media.example.com
   type: ClusterIP
   port: 80
   # A different port than 80, which can cause conflicts when hostNetworkIP is set.
