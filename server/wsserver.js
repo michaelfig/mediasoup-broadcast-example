@@ -85,83 +85,87 @@ function handlePubsub(addr, channel, ws, isPublisher) {
     };
     ws.onmessage = function onMessage(event) {
         // console.log(addr, 'got message', event.data);
-        const action = JSON.parse(event.data);
-        switch (action.type) {
-            case 'MS_SEND': {
-                var target;
-                switch (action.payload.target) {
-                    case 'room':
-                        target = room;
-                        break;
-                    case 'peer':
-                        target = peer;
-                        break;
-                }
-                if (action.meta.notification) {
-                    if (!target) {
-                        console.log(addr, 'unknown notification target', action.payload.target);
-                        break;
+        try {
+            const action = JSON.parse(event.data);
+            switch (action.type) {
+                case 'MS_SEND': {
+                    var target;
+                    switch (action.payload.target) {
+                        case 'room':
+                            target = room;
+                            break;
+                        case 'peer':
+                            target = peer;
+                            break;
                     }
-                    target.receiveNotification(action.payload);
-                    break;
-                }
-
-                if (!target) {
-                    console.log(addr, 'unknown request target', action.payload.target);
-                    sendAction({type: 'MS_ERROR', payload: 'unknown request target', meta: action.meta});
-                    break;
-                }
-                if (action.payload.method === 'join') {
-                    if (isPublisher) {
-                        // Publisher has a reserved name.
-                        action.payload.peerName = PUBLISHER_PEER;
-                    }
-                    else if (action.payload.peerName === PUBLISHER_PEER) {
-                        // They tried to be the publisher, but weren't authed.
-                        action.payload.peerName = 'pseudo' + PUBLISHER_PEER;
-                    }
-                    // Kick out the old peer.
-                    var oldPeer = room.getPeerByName(action.payload.peerName);
-                    if (oldPeer) {
-                        oldPeer.close();
-                    }
-                }
-                target.receiveRequest(action.payload)
-                    .then(function onResponse(response) {
-                        if (action.payload.method === 'join') {
-                            // Detected a join request, so get the peer.
-                            var peerName = action.payload.peerName;
-                            peer = room.getPeerByName(peerName);
-                            peer.on('notify', function onNotify(notification) {
-                                if (notification.method === 'newPeer' || notification.method === 'peerClosed' ) {
-                                    if (!isPublisher && notification.name !== PUBLISHER_PEER) {
-                                        // Skip the notification to hide all but the publisher.
-                                        return;
-                                    }
-                                }
-                                // console.log(addr, 'sending notification', notification);
-                                sendAction({type: 'MS_NOTIFY', payload: notification, meta: {channel: channel}});
-                            });
-                            console.log(addr, 'new peer joined the room', peerName);
-                            if (!isPublisher) {
-                                // Filter out all peers but the publisher.
-                                response = Object.assign({}, response,
-                                    {peers: response.peers.filter(function (peer) {
-                                        return (peer.name === PUBLISHER_PEER);
-                                    })});
-                            }
+                    if (action.meta.notification) {
+                        if (!target) {
+                            console.log(addr, 'unknown notification target', action.payload.target);
+                            break;
                         }
-                        // console.log(addr, 'sending response', response);
-                        sendAction({type: 'MS_RESPONSE', payload: response, meta: action.meta});
-                    })
-                    .catch(function onError(err) {
-                        sendAction({type: 'MS_ERROR', payload: err, meta: action.meta});
-                    });
-                break;
-            }
+                        target.receiveNotification(action.payload);
+                        break;
+                    }
 
-            default:
-                throw Error('Unrecognized action type ' + action.type);
+                    if (!target) {
+                        console.log(addr, 'unknown request target', action.payload.target);
+                        sendAction({type: 'MS_ERROR', payload: 'unknown request target', meta: action.meta});
+                        break;
+                    }
+                    if (action.payload.method === 'join') {
+                        if (isPublisher) {
+                            // Publisher has a reserved name.
+                            action.payload.peerName = PUBLISHER_PEER;
+                        }
+                        else if (action.payload.peerName === PUBLISHER_PEER) {
+                            // They tried to be the publisher, but weren't authed.
+                            action.payload.peerName = 'pseudo' + PUBLISHER_PEER;
+                        }
+                        // Kick out the old peer.
+                        var oldPeer = room.getPeerByName(action.payload.peerName);
+                        if (oldPeer) {
+                            oldPeer.close();
+                        }
+                    }
+                    target.receiveRequest(action.payload)
+                        .then(function onResponse(response) {
+                            if (action.payload.method === 'join') {
+                                // Detected a join request, so get the peer.
+                                var peerName = action.payload.peerName;
+                                peer = room.getPeerByName(peerName);
+                                peer.on('notify', function onNotify(notification) {
+                                    if (notification.method === 'newPeer' || notification.method === 'peerClosed' ) {
+                                        if (!isPublisher && notification.name !== PUBLISHER_PEER) {
+                                            // Skip the notification to hide all but the publisher.
+                                            return;
+                                        }
+                                    }
+                                    // console.log(addr, 'sending notification', notification);
+                                    sendAction({type: 'MS_NOTIFY', payload: notification, meta: {channel: channel}});
+                                });
+                                console.log(addr, 'new peer joined the room', peerName);
+                                if (!isPublisher) {
+                                    // Filter out all peers but the publisher.
+                                    response = Object.assign({}, response,
+                                        {peers: response.peers.filter(function (peer) {
+                                            return (peer.name === PUBLISHER_PEER);
+                                        })});
+                                }
+                            }
+                            // console.log(addr, 'sending response', response);
+                            sendAction({type: 'MS_RESPONSE', payload: response, meta: action.meta});
+                        })
+                        .catch(function onError(err) {
+                            sendAction({type: 'MS_ERROR', payload: err, meta: action.meta});
+                        });
+                    break;
+                }
+
+                default:
+                    throw Error('Unrecognized action type ' + action.type);
+            }
+        } catch (e) {
+            console.log(addr, 'error', e, 'handling message', event.data);
         }
     };
 }

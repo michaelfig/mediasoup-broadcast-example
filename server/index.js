@@ -72,21 +72,24 @@ server.on('upgrade', function upgrade(req, socket, head) {
         ws.isAlive = true;
         ws.on('pong', heartbeat);
         ws.onmessage = function onMessage(event) {
-            const action = JSON.parse(event.data);
-            if (action.type === 'MS_SEND') {
-                // kind is either 'publish' or 'subscribe'.
-                auth.authorize(addr, action.meta.channel, action.payload)
-                    .then((payload) => {
-                        ws.send(JSON.stringify({type: 'MS_RESPONSE', payload: payload, meta: action.meta}));
-                        wsServer[payload.kind](addr, action.meta.channel, ws);
-                    })
-                    .catch((e) => {
-                        console.log(addr, 'cannot authorize', e);
-                        socket.destroy();
-                    });
-            }
-            else {
-                console.log(addr, 'received unauthorized message', event.data);
+            try {
+                const action = JSON.parse(event.data);
+                if (action.type === 'MS_SEND') {
+                    // kind is either 'publish' or 'subscribe'.
+                    auth.authorize(addr, action.meta.channel, action.payload)
+                        .then((payload) => {
+                            ws.send(JSON.stringify({type: 'MS_RESPONSE', payload: payload, meta: action.meta}));
+                            wsServer[payload.kind](addr, action.meta.channel, ws);
+                        })
+                        .catch((e) => {
+                            console.log(addr, 'cannot authorize', e);
+                            socket.destroy();
+                        });
+                    return;
+                }
+                throw Error('unauthorized');
+            } catch (e) {
+                console.log(addr, 'error', e, 'handling message', event.data);
                 socket.destroy();
             }
         };
