@@ -4,7 +4,7 @@
 
 This project is a vanilla Javascript example of how to use Mediasoup to support the specific case of one-to-many broadcast audio/video on individual "channels".  I prefer writing Typescript, but I wanted to demonstrate a minimal implementation for learning purposes.
 
-There are no techniques borrowed from other code, just the docs.  Accordingly, the ISC license (simple, permissive) is used for this code to encourage you to derive your own software from it without legal worries.  Pull requests are welcome!  I don't want to add more features, but polishing and simplifying this example are important to me.  See the TODO.md for suggested contributions.
+There are no techniques borrowed from other code, just the docs.  Accordingly, the ISC license (simple, permissive) is used for this code to encourage you to derive your own software from it without legal worries.  Pull requests are welcome!  I don't want to add more features, but polishing and simplifying this example are important to me.  See the [TODO.md](TODO.md) for suggested contributions.
 
 ## Quickstart
 
